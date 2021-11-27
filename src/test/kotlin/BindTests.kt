@@ -2,7 +2,8 @@ package ca.tradejmark.jbind
 
 import ca.tradejmark.jbind.binds.AttributesBind.bindAttributes
 import ca.tradejmark.jbind.binds.TextBind.bindText
-import ca.tradejmark.jbind.location.BindLoc
+import ca.tradejmark.jbind.location.BindPath
+import ca.tradejmark.jbind.location.BindValueLocation
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.html.dom.append
@@ -24,18 +25,18 @@ class BindTests {
 
         val testFlow = MutableStateFlow(INITIAL)
         val testFlow2 = MutableStateFlow(INITIAL2)
-        override fun getString(location: BindLoc): Flow<String> {
-            if (location.path.size == 1
-                && location.path[0] == "test"
-                && location.obj == "object"
-                && location.attr == "attr") {
+        override fun getValue(location: BindValueLocation): Flow<String> {
+            if (location.objectLocation.path.size == 1
+                && location.objectLocation.path[0] == "test"
+                && location.objectLocation.objectName == "object"
+                && location.valueName == "attr") {
                 return  testFlow
             }
-            if (location.path.size == 2
-                && location.path[0] == "test"
-                && location.path[1] == "inner"
-                && location.obj == "obj"
-                && location.attr == "attr") {
+            if (location.objectLocation.path.size == 2
+                && location.objectLocation.path[0] == "test"
+                && location.objectLocation.path[1] == "inner"
+                && location.objectLocation.objectName == "obj"
+                && location.valueName == "attr") {
                 return testFlow2
             }
             else throw UnavailableError(location)
@@ -51,7 +52,7 @@ class BindTests {
     @Test
     fun testTextBinding() = TestScope().launch {
         val testDiv = document.body!!.append.div {
-            bindText(BindLoc(listOf("test"), "obj", "attr"))
+            bindText(BindPath("test").obj("obj").value("attr"))
         }
         JBind.bind(document.body!!, TestProvider)
 
@@ -65,8 +66,8 @@ class BindTests {
     fun testAttributeBinding() = TestScope().launch {
         val testDiv = document.body!!.append.div {
             bindAttributes(mapOf(
-                "testA" to BindLoc(listOf("test"), "obj", "attr"),
-                "testB" to BindLoc(listOf("test", "inner"), "obj", "attr")
+                "testA" to BindPath("test").obj("obj").value("attr"),
+                "testB" to BindPath("test").sub("inner").obj("obj").value("attr")
             ))
         }
         JBind.bind(document.body!!, TestProvider)
@@ -87,9 +88,9 @@ class BindTests {
     @Test
     fun testAllBindings() = TestScope().launch {
         val testDiv = document.body!!.append.div {
-            bindText(BindLoc(listOf("test"), "obj", "attr"))
+            bindText(BindPath("test").obj("obj").value("attr"))
             bindAttributes(mapOf(
-                "data-test" to BindLoc(listOf("test"), "obj","attr")
+                "data-test" to BindPath("test").obj("obj").value("attr")
             ))
         }
         JBind.bind(document.body!!, TestProvider)

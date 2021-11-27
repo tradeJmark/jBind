@@ -2,7 +2,7 @@ package ca.tradejmark.jbind
 
 import ca.tradejmark.jbind.binds.AttributesBind
 import ca.tradejmark.jbind.binds.TextBind
-import ca.tradejmark.jbind.location.BindLoc
+import ca.tradejmark.jbind.location.BindValueLocation
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
@@ -14,12 +14,12 @@ object JBind {
         for (i in 0 until binds.length) {
             val toBind = binds[i] as? HTMLElement ?: continue
             val textFlow = toBind.dataset[TextBind.datasetName]?.let {
-                provider.getString(BindLoc.parse(it))
+                provider.getValue(BindValueLocation(it))
             }
             val attrFlows = toBind.dataset[AttributesBind.datasetName]
                 ?.split(",")
                 ?.map {
-                    it to provider.getString(BindLoc.parse(toBind.getAttribute(it)!!))
+                    it to provider.getValue(BindValueLocation(toBind.getAttribute(it)!!))
                 }
             JBindScope.launch {
                 textFlow?.collect { toBind.innerText = it }

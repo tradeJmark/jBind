@@ -1,5 +1,5 @@
 package ca.tradejmark.jbind
 
-import ca.tradejmark.jbind.location.BindLoc
+import ca.tradejmark.jbind.location.BindValueLocation
 
-class UnavailableError(location: BindLoc): Exception("No resource found at $location.")
+class UnavailableError(location: BindValueLocation): Exception("No resource found at $location.")
