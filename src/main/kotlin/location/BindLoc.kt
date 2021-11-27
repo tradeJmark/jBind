@@ -1,4 +1,4 @@
-package ca.tradejmark.jbind
+package ca.tradejmark.jbind.location
 
 data class BindLoc(val path: List<String>, val obj: String, val attr: String) {
     override fun toString(): String {

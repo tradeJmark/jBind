@@ -1,7 +1,8 @@
 package ca.tradejmark.jbind
 
-import ca.tradejmark.jbind.AttributesBind.bindAttributes
-import ca.tradejmark.jbind.TextBind.bindText
+import ca.tradejmark.jbind.binds.AttributesBind.bindAttributes
+import ca.tradejmark.jbind.binds.TextBind.bindText
+import ca.tradejmark.jbind.location.BindLoc
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.html.dom.append
@@ -11,8 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.html.dom.create
-import kotlinx.html.js.body
 import org.w3c.dom.get
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
@@ -26,10 +25,17 @@ class BindTests {
         val testFlow = MutableStateFlow(INITIAL)
         val testFlow2 = MutableStateFlow(INITIAL2)
         override fun getString(location: BindLoc): Flow<String> {
-            if (location.path.size == 1 && location.path[0] == "test" && location.obj == "object" && location.attr == "attr") {
+            if (location.path.size == 1
+                && location.path[0] == "test"
+                && location.obj == "object"
+                && location.attr == "attr") {
                 return  testFlow
             }
-            if (location.path.size == 2 && location.path[0] == "test" && location.path[1] == "inner" && location.obj == "obj" && location.attr == "attr") {
+            if (location.path.size == 2
+                && location.path[0] == "test"
+                && location.path[1] == "inner"
+                && location.obj == "obj"
+                && location.attr == "attr") {
                 return testFlow2
             }
             else throw UnavailableError(location)

@@ -1,5 +1,8 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.binds.AttributesBind
+import ca.tradejmark.jbind.binds.TextBind
+import ca.tradejmark.jbind.location.BindLoc
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement

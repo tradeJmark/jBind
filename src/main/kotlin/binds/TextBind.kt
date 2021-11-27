@@ -1,5 +1,6 @@
-package ca.tradejmark.jbind
+package ca.tradejmark.jbind.binds
 
+import ca.tradejmark.jbind.location.BindLoc
 import kotlinx.html.HTMLTag
 
 object TextBind {
