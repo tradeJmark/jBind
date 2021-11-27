@@ -1,2 +1,2 @@
-rootProject.name = "jBind"
+rootProject.name = "jbind"
 
