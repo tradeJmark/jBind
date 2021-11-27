@@ -1,9 +1,36 @@
+import org.jetbrains.kotlin.gradle.plugin.statistics.ReportStatisticsToElasticSearch.url
+
 plugins {
     id("org.jetbrains.kotlin.js") version "1.6.0"
+    `maven-publish`
+    id("dev.petuska.npm.publish") version "2.1.1"
 }
 
 group = "ca.tradejmark.jbind"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/tradeJmark/jBind")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+npmPublishing {
+    organization = "tradeJmark"
+    repositories {
+        repository("GitHubPackages") {
+            registry = uri("https://npm.pkg.github.com")
+            authToken = System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
 
 repositories {
     mavenCentral()
