@@ -42,11 +42,6 @@ class BindTests {
         TestProvider.testFlow2.tryEmit(TestProvider.INITIAL2)
     }
 
-    @BeforeTest
-    fun makeBody() {
-        document.body = document.create.body()
-    }
-
     @Test
     fun testTextBinding() = TestScope().launch {
         val testDiv = document.body!!.append.div {
