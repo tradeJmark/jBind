@@ -1,5 +1,8 @@
 package ca.tradejmark.jbind.location
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class BindObjectLocation internal constructor(val path: BindPath, val objectName: String) {
     fun value(valueName: String): BindValueLocation = BindValueLocation(this, valueName)
     override fun toString(): String {

@@ -1,13 +1,26 @@
-import org.jetbrains.kotlin.gradle.plugin.statistics.ReportStatisticsToElasticSearch.url
+import java.io.FileInputStream
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = File(rootProject.rootDir, "local.properties")
+    if (file.exists()) load(FileInputStream(file))
+}
+
+val githubToken: String? = localProperties["githubToken"]?.toString()
+val githubActor: String? = localProperties["githubActor"]?.toString()
 
 plugins {
-    id("org.jetbrains.kotlin.js") version "1.6.0"
+    kotlin("multiplatform") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
     `maven-publish`
-    id("dev.petuska.npm.publish") version "2.1.1"
 }
 
 group = "ca.tradejmark.jbind"
 version = "0.0.1"
+
+repositories {
+    mavenCentral()
+}
 
 publishing {
     repositories {
@@ -15,36 +28,15 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/tradeJmark/jBind")
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = githubActor ?: System.getenv("GITHUB_ACTOR")
+                password = githubToken ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
 }
 
-npmPublishing {
-    organization = "tradeJmark"
-    repositories {
-        repository("GitHubPackages") {
-            registry = uri("https://npm.pkg.github.com")
-            authToken = System.getenv("GITHUB_TOKEN")
-        }
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
-    implementation(kotlin("stdlib-js"))
-    api("org.jetbrains.kotlinx:kotlinx-html-js:0.7.3")
-
-    testImplementation(kotlin("test-js"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0-RC")
-}
-
 kotlin {
+    jvm()
     js(IR) {
         browser {
             testTask {
@@ -54,5 +46,36 @@ kotlin {
             }
         }
         binaries.executable()
+    }
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
+                api("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+            }
+        }
+
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0-RC")
+            }
+        }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation("io.ktor:ktor-server-core:1.6.5")
+                implementation("io.ktor:ktor-websockets:1.6.5")
+                implementation("ch.qos.logback:logback-classic:1.2.6")
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation("io.ktor:ktor-server-test-host:1.6.5")
+            }
+        }
     }
 }
