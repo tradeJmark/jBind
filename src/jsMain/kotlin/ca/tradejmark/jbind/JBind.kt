@@ -21,12 +21,10 @@ object JBind {
                 ?.map {
                     it to provider.getValue(BindValueLocation(toBind.getAttribute(it)!!))
                 }
-            JBindScope.launch {
-                textFlow?.collect { toBind.innerText = it }
-                attrFlows?.forEach { (attr, valuesFlow) ->
-                    valuesFlow.collect {
-                        toBind.setAttribute(attr, it)
-                    }
+            JBindScope.launch { textFlow?.collect { toBind.innerText = it } }
+            attrFlows?.forEach { (attr, valuesFlow) ->
+                JBindScope.launch {
+                    valuesFlow.collect { toBind.setAttribute(attr, it) }
                 }
             }
         }

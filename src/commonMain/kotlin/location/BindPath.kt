@@ -1,5 +1,8 @@
 package ca.tradejmark.jbind.location
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class BindPath(val path: List<String>): List<String> by path {
     constructor(path: String): this(path.split("."))
     fun sub(subpath: String): BindPath = BindPath(path + subpath.split("."))

@@ -14,7 +14,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Publish the Maven package
-        run: gradle publish
+      - name: Publish the packages
+        run: gradle publishAllPublicationsToGitHubPackagesRepository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
