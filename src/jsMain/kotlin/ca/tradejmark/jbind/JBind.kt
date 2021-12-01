@@ -6,10 +6,11 @@ import ca.tradejmark.jbind.location.BindValueLocation
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.ParentNode
 import org.w3c.dom.get
 
 object JBind {
-    fun bind(root: HTMLElement, provider: Provider) {
+    fun bind(root: ParentNode, provider: Provider) {
         val binds = root.querySelectorAll("[${TextBind.attrName}],[${AttributesBind.attrName}]")
         for (i in 0 until binds.length) {
             val toBind = binds[i] as? HTMLElement ?: continue
