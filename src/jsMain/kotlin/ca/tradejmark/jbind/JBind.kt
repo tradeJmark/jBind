@@ -27,10 +27,11 @@ object JBind {
             val textFlow = toBind.dataset[ContentBind.datasetName]?.let { loc ->
                 val split = loc.split("#")
                 if (split.size > 2) throw InvalidLocationError(loc, "Cannot contain multiple '#' characters.")
+                val location = split[0]
                 val transformation = split.getOrNull(1)?.let {
                     transformations[it] ?: throw InvalidLocationError(loc, "No transformation named $it registered.")
                 }
-                provider.getValue(BindValueLocation(loc)).map {
+                provider.getValue(BindValueLocation(location)).map {
                     val htmlByAttr = toBind.getAttribute(IsHTML.attrName).toBoolean()
                     if (transformation != null) {
                         val content = transformation.transform(it)
