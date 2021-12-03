@@ -1,8 +1,11 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.BindTests.TestProvider.HTML_INNER_ID
+import ca.tradejmark.jbind.BindTests.TestProvider.HTML_INNER_TEXT
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
-import ca.tradejmark.jbind.binds.AttributesBind.bindAttributes
-import ca.tradejmark.jbind.binds.TextBind.bindText
+import ca.tradejmark.jbind.dsl.AttributesBind.bindAttributes
+import ca.tradejmark.jbind.dsl.ContentBind.bindContent
+import ca.tradejmark.jbind.dsl.IsHTML.contentIsHtml
 import ca.tradejmark.jbind.location.BindPath
 import ca.tradejmark.jbind.location.BindValueLocation
 import kotlinx.browser.document
@@ -15,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import kotlinx.html.id
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
@@ -24,22 +28,22 @@ class BindTests {
     object TestProvider: Provider {
         const val INITIAL = "init"
         const val INITIAL2 = "2init2"
+        const val HTML_INNER_ID = "inner"
+        const val HTML_INNER_TEXT = "text"
+        const val HTML_CONTENT = "<div id=\"$HTML_INNER_ID\">$HTML_INNER_TEXT</div>"
 
         val testFlow = MutableStateFlow(INITIAL)
         val testFlow2 = MutableStateFlow(INITIAL2)
+        val htmlFlow = MutableStateFlow(HTML_CONTENT)
         override fun getValue(location: BindValueLocation): Flow<String> {
-            if (location.objectLocation.path.size == 1
-                && location.objectLocation.path[0] == "test"
-                && location.objectLocation.objectName == "obj"
-                && location.valueName == "attr") {
+            if (location == BindPath("test").obj("obj").value("attr")) {
                 return  testFlow
             }
-            if (location.objectLocation.path.size == 2
-                && location.objectLocation.path[0] == "test"
-                && location.objectLocation.path[1] == "inner"
-                && location.objectLocation.objectName == "obj"
-                && location.valueName == "attr") {
+            if (location == BindPath("test").sub("inner").obj("obj").value("attr")) {
                 return testFlow2
+            }
+            if (location == BindPath("html").obj("test").value("body")) {
+                return htmlFlow
             }
             else throw UnavailableError(location)
         }
@@ -59,7 +63,7 @@ class BindTests {
     @Test
     fun testTextBinding() = runTest {
         val testDiv = document.body!!.append.div {
-            bindText(BindPath("test").obj("obj").value("attr"))
+            bindContent(BindPath("test").obj("obj").value("attr"))
         }
         JBind.bind(document.body!!, TestProvider)
 
@@ -101,7 +105,7 @@ class BindTests {
     @Test
     fun testAllBindings() = runTest {
         val testDiv = document.body!!.append.div {
-            bindText(BindPath("test").obj("obj").value("attr"))
+            bindContent(BindPath("test").obj("obj").value("attr"))
             bindAttributes(mapOf(
                 "data-test" to BindPath("test").obj("obj").value("attr")
             ))
@@ -116,5 +120,19 @@ class BindTests {
         delayForUpdate()
         assertEquals(second, testDiv.innerText)
         assertEquals(second, testDiv.dataset["test"])
+    }
+
+    @Test
+    fun testContentIsHtml() = runTest {
+        val testDiv = document.body!!.append.div {
+            bindContent(BindPath("html").obj("test").value("body"))
+            contentIsHtml = true
+        }
+        JBind.bind(document.body!!, TestProvider)
+
+        delayForUpdate()
+        assertEquals(testDiv.innerHTML, TestProvider.HTML_CONTENT)
+        assertEquals(HTML_INNER_ID, (testDiv.firstChild as? HTMLElement)?.id)
+        assertEquals(HTML_INNER_TEXT, (testDiv.firstChild as? HTMLElement)?.innerText)
     }
 }

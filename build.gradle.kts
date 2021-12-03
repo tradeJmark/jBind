@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin
 
 val localProperties = Properties().apply {
     val file = File(rootProject.rootDir, "local.properties")
@@ -54,6 +55,12 @@ kotlin {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
                 api("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+            }
+        }
+
+        val jsMain by getting {
+            dependencies {
+                implementation(npm("markdown-it", "12.2.0"))
             }
         }
 

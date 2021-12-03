@@ -1,7 +1,7 @@
 package ca.tradejmark.jbind
 
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
-import ca.tradejmark.jbind.binds.TextBind.bindText
+import ca.tradejmark.jbind.dsl.ContentBind.bindContent
 import ca.tradejmark.jbind.location.BindPath
 import ca.tradejmark.jbind.location.BindValueLocation
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
@@ -18,7 +18,6 @@ import org.w3c.dom.MessageEvent
 import org.w3c.dom.WebSocket
 import kotlinx.html.dom.append
 import kotlinx.html.js.div
-import kotlinx.serialization.json.JsonNames
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,7 +58,7 @@ class WebSocketProviderTest {
         }
         val provider = WebSocketProvider(mockWS.unsafeCast<WebSocket>())
         val testDiv = document.body!!.append.div {
-            bindText(location)
+            bindContent(location)
         }
         JBind.bind(document.body!!, provider)
         val first = "first"

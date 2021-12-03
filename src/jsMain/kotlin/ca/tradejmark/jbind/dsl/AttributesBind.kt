@@ -1,4 +1,4 @@
-package ca.tradejmark.jbind.binds
+package ca.tradejmark.jbind.dsl
 
 import ca.tradejmark.jbind.location.BindValueLocation
 import kotlinx.html.HTMLTag
