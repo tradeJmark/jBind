@@ -21,7 +21,7 @@ class WebSocketProvider(webSocket: WebSocket? = null): Provider {
                     directory[message.location]?.forEach { it.tryEmit(message.value) }
                 }
                 is WSProviderError -> {
-                    console.error(message.msg)
+                    console.error("Server: ${message.msg}")
                 }
             }
         }

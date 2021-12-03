@@ -1,6 +1,7 @@
 package ca.tradejmark.jbind.server
 
 import ca.tradejmark.jbind.Provider
+import ca.tradejmark.jbind.UnavailableError
 import ca.tradejmark.jbind.location.BindValueLocation
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
@@ -42,13 +43,17 @@ class JBind {
                             is WSProviderRequest -> {
                                 if (jBind.handled[this]?.contains(cliMsg.location) != true) {
                                     launch {
-                                        provider.getValue(cliMsg.location).collect {
-                                            try {
-                                                send(serializeMessage(WSProviderResponse(cliMsg.location, it)))
+                                        try {
+                                            provider.getValue(cliMsg.location).collect {
+                                                try {
+                                                    send(serializeMessage(WSProviderResponse(cliMsg.location, it)))
+                                                } catch (e: ClosedReceiveChannelException) {
+                                                    jBind.handled.remove(this@webSocket)
+                                                }
                                             }
-                                            catch (e: ClosedReceiveChannelException) {
-                                                jBind.handled.remove(this@webSocket)
-                                            }
+                                        }
+                                        catch (e: UnavailableError) {
+                                            send(serializeMessage(WSProviderError(e.message!!)))
                                         }
                                     }
                                     if (!jBind.handled.containsKey(this)) jBind.handled[this] = mutableListOf()
