@@ -56,4 +56,8 @@ object JBind {
             }
         }
     }
+
+    fun registerTransformation(name: String, transformation: Transformation) {
+        transformations[name] = transformation
+    }
 }
