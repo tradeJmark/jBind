@@ -32,7 +32,7 @@ object JBind {
                     transformations[it] ?: throw InvalidLocationError(loc, "No transformation named $it registered.")
                 }
                 provider.getValue(BindValueLocation(location)).map {
-                    val htmlByAttr = toBind.getAttribute(IsHTML.attrName).toBoolean()
+                    val htmlByAttr = toBind.dataset[IsHTML.datasetName].toBoolean()
                     if (transformation != null) {
                         val content = transformation.transform(it)
                         ContentData(content, transformation.outputIsHtml or htmlByAttr)
