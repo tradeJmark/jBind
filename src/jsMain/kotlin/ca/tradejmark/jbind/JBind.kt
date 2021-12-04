@@ -25,12 +25,7 @@ object JBind {
         for (i in 0 until binds.length) {
             val toBind = binds[i] as? HTMLElement ?: continue
             val textFlow = toBind.dataset[ContentBind.datasetName]?.let { loc ->
-                val split = loc.split("#")
-                if (split.size > 2) throw InvalidLocationError(loc, "Cannot contain multiple '#' characters.")
-                val location = split[0]
-                val transformation = split.getOrNull(1)?.let {
-                    transformations[it] ?: throw InvalidLocationError(loc, "No transformation named $it registered.")
-                }
+                val (location, transformation) = extractContentData(loc)
                 provider.getValue(BindValueLocation(location)).map {
                     val htmlByAttr = toBind.dataset[IsHTML.datasetName].toBoolean()
                     if (transformation != null) {
@@ -59,5 +54,15 @@ object JBind {
 
     fun registerTransformation(name: String, transformation: Transformation) {
         transformations[name] = transformation
+    }
+
+    internal fun extractContentData(loc: String): Pair<String, Transformation?> {
+        val split = loc.split("#")
+        if (split.size > 2) throw InvalidLocationError(loc, "Cannot contain multiple '#' characters.")
+        val location = split[0]
+        val transformation = split.getOrNull(1)?.let {
+            transformations[it] ?: throw InvalidLocationError(loc, "No transformation named $it registered.")
+        }
+        return location to transformation
     }
 }
