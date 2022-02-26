@@ -20,10 +20,12 @@ fun <T> JBind.bindObjects(root: ParentNode, provider: ObjectProvider<T>, seriali
     val binds = root.querySelectorAll("[${ObjectBind.attrName}]")
     for (i in 0 until binds.length) {
         val toBind = binds[i] as? HTMLElement ?: continue
-        val (location, transformation) = extractContentData(toBind.dataset[ObjectBind.datasetName]!!)
+        val location = toBind.dataset[ObjectBind.datasetName]!!
         JBindScope.launch {
             provider.getObject(BindObjectLocation(location)).collect {
-                val contentValue = toBind.dataset[ObjectBind.contentValueDatasetName]
+                val (contentValue, transformation) = toBind.dataset[ObjectBind.contentValueDatasetName]?.let {
+                    extractContentData(it)
+                } ?: (null to null)
                 encodeToElement(it, toBind, contentValue = contentValue, transformation = transformation, serializer)
             }
         }

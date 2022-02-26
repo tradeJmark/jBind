@@ -10,6 +10,7 @@ import ca.tradejmark.jbind.location.BindValueLocation
 import ca.tradejmark.jbind.serialization.ObjectProvider
 import ca.tradejmark.jbind.serialization.bindObjects
 import ca.tradejmark.jbind.serialization.decodeFromElement
+import ca.tradejmark.jbind.transformation.Transformation
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,11 @@ class ObjectBindTests {
         }
     }
 
+    object TestTransformation: Transformation {
+        override fun transform(from: String): String = "$from transformed"
+        const val NAME = "tt"
+    }
+
     @BeforeTest
     fun clearBody() {
         document.body!!.clear()
@@ -62,5 +68,21 @@ class ObjectBindTests {
         assertEquals(TestProvider.testObj.b.toString(), testDiv.getAttribute(ObjectBind.getValueAttrName("b")))
         val deser = decodeFromElement<TestClass>(testDiv, contentValue = "a")
         assertEquals(TestProvider.testObj, deser)
+    }
+
+    @Test
+    fun testObjectBindWithTransformation() = runTest {
+        JBind.registerTransformation(TestTransformation.NAME, TestTransformation)
+        val testDiv = document.body!!.append.div {
+            bindObject(BindPath("path").obj("testObj"))
+            valueIsContent("a", TestTransformation.NAME)
+        }
+        JBind.bindObjects(document.body!!, TestProvider)
+
+        delayForUpdate()
+        assertEquals("${TestProvider.testObj.a} transformed", testDiv.innerText)
+        assertEquals(TestProvider.testObj.b.toString(), testDiv.getAttribute(ObjectBind.getValueAttrName("b")))
+        val deser = decodeFromElement<TestClass>(testDiv, contentValue = "a")
+        assertEquals(TestProvider.testObj.copy(a = TestTransformation.transform(TestProvider.testObj.a)), deser)
     }
 }
