@@ -3,6 +3,7 @@ package ca.tradejmark.jbind
 import ca.tradejmark.jbind.dsl.AttributesBind
 import ca.tradejmark.jbind.dsl.IsHTML
 import ca.tradejmark.jbind.dsl.ContentBind
+import ca.tradejmark.jbind.dsl.ScopeBind
 import ca.tradejmark.jbind.location.BindValueLocation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKDOWN_TRANSFORMATION
@@ -20,14 +21,21 @@ object JBind {
         MARKDOWN_TRANSFORMATION to MarkdownTransformation(MarkdownVariant.COMMONMARK)
     )
 
-    fun bind(root: ParentNode, provider: Provider) {
-        val binds = root.querySelectorAll("[${ContentBind.attrName}],[${AttributesBind.attrName}]")
-        for (i in 0 until binds.length) {
-            val toBind = binds[i] as? HTMLElement ?: continue
-            bindContent(toBind, provider)
-            bindAttributes(toBind, provider)
+    fun bind(root: ParentNode, provider: Provider) = bind(root, provider, "")
+
+    private fun bind(root: ParentNode, provider: Provider, scope: String) {
+        var newScope = scope
+        if (root is HTMLElement) {
+            root.dataset[ScopeBind.datasetName]?.let { newScope = rescope(scope, it) }
+            if (root.hasAttribute(ContentBind.attrName)) bindContent(root, provider, newScope)
+            if (root.hasAttribute(AttributesBind.attrName)) bindAttributes(root, provider, newScope)
+        }
+        for (i in 0 until root.childElementCount) {
+            bind(root.children[i]!!, provider, newScope)
         }
     }
+
+    private fun rescope(old: String, new: String): String = if (old == "")  new else "$old.$new"
 
     fun registerTransformation(name: String, transformation: Transformation) {
         transformations[name] = transformation
@@ -43,7 +51,7 @@ object JBind {
         return location to transformation
     }
 
-    private fun bindContent(element: HTMLElement, provider: Provider) {
+    private fun bindContent(element: HTMLElement, provider: Provider, scope: String) {
         val textFlow = element.dataset[ContentBind.datasetName]?.let { loc ->
             val (location, transformation) = extractContentData(loc)
             provider.getValue(BindValueLocation(location)).map {
@@ -54,20 +62,20 @@ object JBind {
                 }
                 else ContentData(it, htmlByAttr)
             }
-        }
-        JBindScope.launch { textFlow?.collect { (content, isHtml) ->
+        } ?: return
+        JBindScope.launch { textFlow.collect { (content, isHtml) ->
             if (isHtml) element.innerHTML = content
             else element.innerText = content
         } }
     }
 
-    private fun bindAttributes(element: HTMLElement, provider: Provider) {
+    private fun bindAttributes(element: HTMLElement, provider: Provider, scope: String) {
         val attrFlows = element.dataset[AttributesBind.datasetName]
             ?.split(",")
             ?.map {
                 it to provider.getValue(BindValueLocation(element.getAttribute(it)!!))
-            }
-        attrFlows?.forEach { (attr, valuesFlow) ->
+            } ?: return
+        attrFlows.forEach { (attr, valuesFlow) ->
             JBindScope.launch {
                 valuesFlow.collect { element.setAttribute(attr, it) }
             }
