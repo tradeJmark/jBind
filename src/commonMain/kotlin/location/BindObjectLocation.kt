@@ -3,10 +3,11 @@ package ca.tradejmark.jbind.location
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BindObjectLocation internal constructor(val path: BindPath, val objectName: String) {
+data class BindObjectLocation internal constructor(val path: BindPath?, val objectName: String) {
     fun value(valueName: String): BindValueLocation = BindValueLocation(this, valueName)
     override fun toString(): String {
-        return "$path.$objectName"
+        val pathOrRel = path?.let { "$it." } ?: ":"
+        return "$pathOrRel$objectName"
     }
 
     companion object {
@@ -17,5 +18,7 @@ data class BindObjectLocation internal constructor(val path: BindPath, val objec
         operator fun invoke(wholePath: String): BindObjectLocation {
             return BindObjectLocation(wholePath.split("."))
         }
+
+        fun relative(objectName: String): BindObjectLocation = BindObjectLocation(null, objectName)
     }
 }

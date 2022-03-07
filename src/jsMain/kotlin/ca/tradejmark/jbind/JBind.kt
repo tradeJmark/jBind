@@ -26,7 +26,7 @@ object JBind {
     private fun bind(root: ParentNode, provider: Provider, scope: String) {
         var newScope = scope
         if (root is HTMLElement) {
-            root.dataset[ScopeBind.datasetName]?.let { newScope = rescope(scope, it) }
+            root.dataset[ScopeBind.datasetName]?.let { newScope = scoped(scope, it) }
             if (root.hasAttribute(ContentBind.attrName)) bindContent(root, provider, newScope)
             if (root.hasAttribute(AttributesBind.attrName)) bindAttributes(root, provider, newScope)
         }
@@ -35,16 +35,20 @@ object JBind {
         }
     }
 
-    private fun rescope(old: String, new: String): String = if (old == "")  new else "$old.$new"
+    private fun scoped(scope: String, path: String): String = when {
+        scope == "" -> path
+        path.startsWith(":") -> "$scope.${path.drop(1)}"
+        else -> path
+    }
 
     fun registerTransformation(name: String, transformation: Transformation) {
         transformations[name] = transformation
     }
 
-    internal fun extractContentData(loc: String): Pair<String, Transformation?> {
+    internal fun extractContentData(loc: String, scope: String = ""): Pair<String, Transformation?> {
         val split = loc.split("#")
         if (split.size > 2) throw InvalidLocationError(loc, "Cannot contain multiple '#' characters.")
-        val location = split[0]
+        val location = scoped(scope, split[0])
         val transformation = split.getOrNull(1)?.let {
             transformations[it] ?: throw InvalidLocationError(loc, "No transformation named $it registered.")
         }
@@ -53,7 +57,7 @@ object JBind {
 
     private fun bindContent(element: HTMLElement, provider: Provider, scope: String) {
         val textFlow = element.dataset[ContentBind.datasetName]?.let { loc ->
-            val (location, transformation) = extractContentData(loc)
+            val (location, transformation) = extractContentData(loc, scope)
             provider.getValue(BindValueLocation(location)).map {
                 val htmlByAttr = element.dataset[IsHTML.datasetName].toBoolean()
                 if (transformation != null) {
@@ -73,7 +77,7 @@ object JBind {
         val attrFlows = element.dataset[AttributesBind.datasetName]
             ?.split(",")
             ?.map {
-                it to provider.getValue(BindValueLocation(element.getAttribute(it)!!))
+                it to provider.getValue(BindValueLocation(scoped(scope, element.getAttribute(it)!!)))
             } ?: return
         attrFlows.forEach { (attr, valuesFlow) ->
             JBindScope.launch {
