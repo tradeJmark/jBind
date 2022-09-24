@@ -11,8 +11,8 @@ val githubToken: String? = localProperties["githubToken"]?.toString()
 val githubActor: String? = localProperties["githubActor"]?.toString()
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("multiplatform") version "1.7.10"
+    kotlin("plugin.serialization") version "1.7.10"
     `maven-publish`
 }
 
@@ -52,9 +52,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC")
-                api("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
+                api("org.jetbrains.kotlinx:kotlinx-html:0.7.5")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
             }
         }
 
@@ -67,7 +67,7 @@ kotlin {
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0-RC")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.3")
             }
         }
 

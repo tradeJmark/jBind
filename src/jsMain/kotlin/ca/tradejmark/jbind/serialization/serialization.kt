@@ -5,7 +5,6 @@ import ca.tradejmark.jbind.JBindScope
 import ca.tradejmark.jbind.dsl.ObjectBind
 import ca.tradejmark.jbind.location.BindObjectLocation
 import ca.tradejmark.jbind.transformation.Transformation
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -23,8 +22,8 @@ fun <T> JBind.bindObjects(root: ParentNode, provider: ObjectProvider<T>, seriali
         val location = toBind.dataset[ObjectBind.datasetName]!!
         JBindScope.launch {
             provider.getObject(BindObjectLocation(location)).collect {
-                val (contentValue, transformation) = toBind.dataset[ObjectBind.contentValueDatasetName]?.let {
-                    extractContentData(it)
+                val (contentValue, transformation) = toBind.dataset[ObjectBind.contentValueDatasetName]?.let { cv ->
+                    extractContentData(cv)
                 } ?: (null to null)
                 encodeToElement(it, toBind, contentValue = contentValue, transformation = transformation, serializer)
             }
