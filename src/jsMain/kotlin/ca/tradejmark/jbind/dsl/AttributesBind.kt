@@ -8,9 +8,6 @@ object AttributesBind {
     const val datasetName = "jbindAttribute"
 
     fun HTMLTag.bindAttributes(bindings: Map<String, ValueLocation>) {
-        for ((attr, loc) in bindings) {
-            attributes[attr] = loc.toString()
-        }
-        attributes[attrName] = bindings.keys.joinToString(",")
+        attributes[attrName] = bindings.toList().joinToString(";") { (attr, loc) -> "$attr=$loc" }
     }
 }

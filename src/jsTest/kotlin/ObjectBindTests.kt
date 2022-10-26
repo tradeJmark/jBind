@@ -75,7 +75,7 @@ class ObjectBindTests {
         JBind.registerTransformation(TestTransformation.NAME, TestTransformation)
         val testDiv = document.body!!.append.div {
             bindObject(Path("path").obj("testObj"))
-            valueIsContent("a", TestTransformation.NAME)
+            valueIsContent("a", TestTransformation)
         }
         JBind.bindObjects(document.body!!, TestProvider)
 

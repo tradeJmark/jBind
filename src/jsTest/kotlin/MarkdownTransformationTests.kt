@@ -6,7 +6,6 @@ import ca.tradejmark.jbind.MarkdownTransformationTests.TestProvider.MARKDOWN_LI_
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
 import ca.tradejmark.jbind.location.ValueLocation
-import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKDOWN_TRANSFORMATION
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +41,7 @@ class MarkdownTransformationTests {
     @Test
     fun testMarkdownTransformation() = runTest {
         val testDiv = document.body!!.append.div {
-            bindContent(ValueLocation("where.ev.er"), MARKDOWN_TRANSFORMATION)
+            bindContent(ValueLocation("where:ev.er"), JBind.DefaultTransformations.markdown)
         }
         JBind.bind(document.body!!, TestProvider)
 

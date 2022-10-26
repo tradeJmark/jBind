@@ -1,8 +1,10 @@
 package ca.tradejmark.jbind.serialization
 
+import ca.tradejmark.jbind.InvalidLocationError
 import ca.tradejmark.jbind.JBind
 import ca.tradejmark.jbind.JBindScope
 import ca.tradejmark.jbind.dsl.ObjectBind
+import ca.tradejmark.jbind.location.Location
 import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.transformation.Transformation
 import kotlinx.coroutines.launch
@@ -14,24 +16,23 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.ParentNode
 import org.w3c.dom.get
 
-@ExperimentalSerializationApi
-fun <T> JBind.bindObjects(root: ParentNode, provider: ObjectProvider<T>, serializer: SerializationStrategy<T>) {
-    val binds = root.querySelectorAll("[${ObjectBind.attrName}]")
-    for (i in 0 until binds.length) {
-        val toBind = binds[i] as? HTMLElement ?: continue
-        val location = toBind.dataset[ObjectBind.datasetName]!!
-        JBindScope.launch {
-            provider.getObject(ObjectLocation(location)).collect {
-                val (contentValue, transformation) = toBind.dataset[ObjectBind.contentValueDatasetName]?.let { cv ->
-                    extractContentData(cv)
-                } ?: (null to null)
-                encodeToElement(it, toBind, contentValue = contentValue, transformation = transformation, serializer)
-            }
+@OptIn(ExperimentalSerializationApi::class)
+fun <T> JBind.bindObjects(
+    root: ParentNode,
+    provider: ObjectProvider<T>,
+    serializer: SerializationStrategy<T>) = traverse(root, { elem, scope ->
+    val location = elem.dataset[ObjectBind.datasetName]
+        ?.let { Location.fromString(it, scope) as? ObjectLocation ?: throw InvalidLocationError(it, "Does not represent an object") }
+        ?: return@traverse
+    JBindScope.launch {
+        provider.getObject(location).collect { obj ->
+            val contentValue = elem.dataset[ObjectBind.contentValueDatasetName]
+            val transformation = elem.dataset[ObjectBind.contentTransformationDatasetName]?.let { transformations[it] }
+            encodeToElement(obj, elem, contentValue = contentValue, transformation = transformation, serializer)
         }
     }
-}
+})
 
-@ExperimentalSerializationApi
 inline fun <reified T> JBind.bindObjects(root: ParentNode, provider: ObjectProvider<T>) {
     bindObjects(root, provider, serializer())
 }
@@ -51,7 +52,7 @@ internal fun <T> encodeToElement(
     ).encodeSerializableValue(serializer, value)
 }
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 fun <T> decodeFromElement(
     element: HTMLElement,
     contentValue: String? = null,
@@ -63,7 +64,6 @@ fun <T> decodeFromElement(
     ).decodeSerializableValue(serializer)
 }
 
-@ExperimentalSerializationApi
 inline fun <reified T> decodeFromElement(
     element: HTMLElement,
     contentValue: String? = null
