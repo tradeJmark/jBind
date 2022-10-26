@@ -12,8 +12,8 @@ class LocationTests {
         val anObject = aPath.obj("object")
         const val anObjectString = "$aPathString:object"
 
-        val anArrayItem = anObject.arrayItem(5)
-        const val anArrayItemString = "$anObjectString[5]"
+        val anArrayItem = anObject.arrayItem(15)
+        const val anArrayItemString = "$anObjectString[15]"
 
         val anObjectValue = anObject.value("name")
         const val anObjectValueString = "$anObjectString.name"
@@ -51,11 +51,13 @@ class LocationTests {
     @Test
     fun testArrayItemToString() {
         assertEquals(anArrayItemString, anArrayItem.toString())
+        assertEquals(":arr[]", Path().obj("arr").allArrayItems().toString())
     }
 
     @Test
     fun testArrayItemFromString() {
         assertEquals(anArrayItem, Location.fromString(anArrayItemString))
+        assertEquals(Path().obj("arr").allArrayItems(), Location.fromString(":arr[]"))
     }
 
     @Test
@@ -94,7 +96,6 @@ class LocationTests {
         assertFails { Location.fromString("array:on.value[3]") }
         assertFails { Location.fromString("array:on.value[3]") }
         assertFails { Location.fromString(":value.on.value") }
-        assertFails { Location.fromString(":empty[].array") }
         assertFails { Location.fromString("/empty//path:segment") }
         assertFails { Location.fromString("old.style.path") }
         assertFails { Location.fromString("#/relative/without:scope") }

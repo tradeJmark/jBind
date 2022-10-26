@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 sealed interface Location {
     companion object {
         //IntelliJ warns the backslash on the ] is redundant, and that's true on JVM, but it's needed on JS.
-        private val regex = Regex("""(?<path>\w+(/\w+)*)?(:(?<obj>\w+)(\[(?<arrInd>\d)\])?\.?(?<value>\w+)?)?""")
+        private val regex = Regex("""(?<path>\w+(/\w+)*)?(:(?<obj>\w+)(\[(?<arrInd>\d*)\])?\.?(?<value>\w+)?)?""")
 
         fun fromString(loc: String, scope: Location? = null): Location {
             if (loc == "") throw InvalidLocationError(loc, "Empty string does not represent a valid location")
@@ -22,7 +22,7 @@ sealed interface Location {
                 it.split("/").fold(Path()) { p, s -> p.sub(s) }
             } ?: Path()
             val obj = groups["obj"]?.value?.let { path.obj(it) }
-            val arr = groups["arrInd"]?.value?.toInt()?.let { obj?.arrayItem(it) }
+            val arr = groups["arrInd"]?.value?.let { if (it == "") obj?.allArrayItems() else obj?.arrayItem(it.toInt()) }
             val value = groups["value"]?.value?.let { arr?.value(it) ?: obj?.value(it) }
             return value ?: arr ?: obj ?: path
         }

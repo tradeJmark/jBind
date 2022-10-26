@@ -1,5 +1,6 @@
 package ca.tradejmark.jbind.websocket
 
+import ca.tradejmark.jbind.location.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -23,6 +24,16 @@ object Serialization {
                 subclass(WSProviderRequest::class)
                 subclass(WSProviderError::class)
             }
+            fun PolymorphicModuleBuilder<ObjectLikeLocation>.registerObjectLikeLocations() {
+                subclass(ObjectLocation::class)
+                subclass(ArrayItemLocation::class)
+                subclass(RelativeObjectLocation::class)
+                subclass(RelativeArrayItemLocation::class)
+            }
+            fun PolymorphicModuleBuilder<PathLikeLocation>.registerPathLikeLocations() {
+                subclass(Path::class)
+                subclass(RelativePath::class)
+            }
             polymorphic(Message::class) {
                 registerServerMessages()
                 registerClientMessages()
@@ -32,6 +43,17 @@ object Serialization {
             }
             polymorphic(ClientMessage::class) {
                 registerClientMessages()
+            }
+            polymorphic(Location::class) {
+                registerObjectLikeLocations()
+                registerPathLikeLocations()
+                subclass(ValueLocation::class)
+            }
+            polymorphic(ObjectLikeLocation::class) {
+                registerObjectLikeLocations()
+            }
+            polymorphic(PathLikeLocation::class) {
+                registerPathLikeLocations()
             }
         }
     }

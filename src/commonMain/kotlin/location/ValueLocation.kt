@@ -1,5 +1,6 @@
 package ca.tradejmark.jbind.location
 
+import ca.tradejmark.jbind.InvalidLocationError
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,6 +10,6 @@ data class ValueLocation internal constructor(val objectLocation: ObjectLikeLoca
     companion object {
         internal operator fun invoke(fullPath: String): ValueLocation =
             Location.fromString(fullPath) as? ValueLocation
-                ?: throw IllegalArgumentException("Location does not represent a value")
+                ?: throw InvalidLocationError(fullPath, "Location does not represent a value")
     }
 }

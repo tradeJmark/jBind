@@ -3,6 +3,7 @@ package ca.tradejmark.jbind.server
 import ca.tradejmark.jbind.Provider
 import ca.tradejmark.jbind.UnavailableError
 import ca.tradejmark.jbind.location.ValueLocation
+import ca.tradejmark.jbind.websocket.ClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
 import ca.tradejmark.jbind.websocket.WSProviderError
@@ -16,6 +17,7 @@ import io.ktor.websocket.*
 import io.ktor.websocket.WebSockets.WebSocketOptions
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
 class JBind {
     internal val handled = mutableMapOf<WebSocketServerSession, MutableList<ValueLocation>>()
@@ -60,6 +62,7 @@ class JBind {
                                 }
                             }
                             is WSProviderError -> application.environment.log.error(cliMsg.msg)
+                            else -> throw IllegalStateException("This should be impossible, because the compiler is wrong to think this when is not exhaustive.")
                         }
                     }
                     is Frame.Close -> jBind.handled.remove(this)
