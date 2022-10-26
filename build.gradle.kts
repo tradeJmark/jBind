@@ -58,6 +58,12 @@ kotlin {
             }
         }
 
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
         val jsMain by getting {
             dependencies {
                 implementation(npm("markdown-it", "12.2.0"))

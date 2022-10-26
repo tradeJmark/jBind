@@ -4,12 +4,11 @@ import ca.tradejmark.jbind.dsl.AttributesBind
 import ca.tradejmark.jbind.dsl.IsHTML
 import ca.tradejmark.jbind.dsl.ContentBind
 import ca.tradejmark.jbind.dsl.ScopeBind
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKDOWN_TRANSFORMATION
 import ca.tradejmark.jbind.transformation.Transformation
 import external.markdown_it.MarkdownVariant
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
@@ -58,7 +57,7 @@ object JBind {
     private fun bindContent(element: HTMLElement, provider: Provider, scope: String) {
         val textFlow = element.dataset[ContentBind.datasetName]?.let { loc ->
             val (location, transformation) = extractContentData(loc, scope)
-            provider.getValue(BindValueLocation(location)).map {
+            provider.getValue(ValueLocation(location)).map {
                 val htmlByAttr = element.dataset[IsHTML.datasetName].toBoolean()
                 if (transformation != null) {
                     val content = transformation.transform(it)
@@ -77,7 +76,7 @@ object JBind {
         val attrFlows = element.dataset[AttributesBind.datasetName]
             ?.split(",")
             ?.map {
-                it to provider.getValue(BindValueLocation(scoped(scope, element.getAttribute(it)!!)))
+                it to provider.getValue(ValueLocation(scoped(scope, element.getAttribute(it)!!)))
             } ?: return
         attrFlows.forEach { (attr, valuesFlow) ->
             JBindScope.launch {

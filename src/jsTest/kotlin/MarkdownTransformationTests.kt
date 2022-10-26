@@ -5,7 +5,7 @@ import ca.tradejmark.jbind.MarkdownTransformationTests.TestProvider.MARKDOWN_LI_
 import ca.tradejmark.jbind.MarkdownTransformationTests.TestProvider.MARKDOWN_LI_2
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKDOWN_TRANSFORMATION
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,7 +29,7 @@ class MarkdownTransformationTests {
         const val MARKDOWN_LI_1 = "A"
         const val MARKDOWN_LI_2 = "B"
         const val MARKDOWN = "# $MARKDOWN_H1\n- $MARKDOWN_LI_1\n- $MARKDOWN_LI_2"
-        override fun getValue(location: BindValueLocation): Flow<String> {
+        override fun getValue(location: ValueLocation): Flow<String> {
             return MutableStateFlow(MARKDOWN)
         }
     }
@@ -42,7 +42,7 @@ class MarkdownTransformationTests {
     @Test
     fun testMarkdownTransformation() = runTest {
         val testDiv = document.body!!.append.div {
-            bindContent(BindValueLocation("where.ev.er"), MARKDOWN_TRANSFORMATION)
+            bindContent(ValueLocation("where.ev.er"), MARKDOWN_TRANSFORMATION)
         }
         JBind.bind(document.body!!, TestProvider)
 

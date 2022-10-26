@@ -2,7 +2,7 @@ package ca.tradejmark.jbind.server
 
 import ca.tradejmark.jbind.Provider
 import ca.tradejmark.jbind.UnavailableError
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
 import ca.tradejmark.jbind.websocket.WSProviderError
@@ -15,11 +15,10 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import io.ktor.websocket.WebSockets.WebSocketOptions
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class JBind {
-    internal val handled = mutableMapOf<WebSocketServerSession, MutableList<BindValueLocation>>()
+    internal val handled = mutableMapOf<WebSocketServerSession, MutableList<ValueLocation>>()
     class Configuration {
         internal var wsBlock: WebSocketOptions.() -> Unit = {}
         fun webSocket(block: WebSocketOptions.() -> Unit) { wsBlock = block }

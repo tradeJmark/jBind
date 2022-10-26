@@ -4,9 +4,9 @@ import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ObjectBind
 import ca.tradejmark.jbind.dsl.ObjectBind.bindObject
 import ca.tradejmark.jbind.dsl.ObjectBind.valueIsContent
-import ca.tradejmark.jbind.location.BindObjectLocation
-import ca.tradejmark.jbind.location.BindPath
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.ObjectLocation
+import ca.tradejmark.jbind.location.Path
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.serialization.ObjectProvider
 import ca.tradejmark.jbind.serialization.bindObjects
 import ca.tradejmark.jbind.serialization.decodeFromElement
@@ -33,12 +33,12 @@ class ObjectBindTests {
     object TestProvider: ObjectProvider<TestClass> {
         val testObj = TestClass("testing", 24)
 
-        override fun getValue(location: BindValueLocation): Flow<String> {
+        override fun getValue(location: ValueLocation): Flow<String> {
             throw UnavailableError(location)
         }
 
-        override fun getObject(location: BindObjectLocation): Flow<TestClass> {
-            if (location == BindPath("path").obj("testObj")) {
+        override fun getObject(location: ObjectLocation): Flow<TestClass> {
+            if (location == Path("path").obj("testObj")) {
                 return flow { emit(testObj) }
             }
             else throw UnavailableError(location)
@@ -58,7 +58,7 @@ class ObjectBindTests {
     @Test
     fun testObjectBind() = runTest {
         val testDiv = document.body!!.append.div {
-            bindObject(BindPath("path").obj("testObj"))
+            bindObject(Path("path").obj("testObj"))
             valueIsContent("a")
         }
         JBind.bindObjects(document.body!!, TestProvider)
@@ -74,7 +74,7 @@ class ObjectBindTests {
     fun testObjectBindWithTransformation() = runTest {
         JBind.registerTransformation(TestTransformation.NAME, TestTransformation)
         val testDiv = document.body!!.append.div {
-            bindObject(BindPath("path").obj("testObj"))
+            bindObject(Path("path").obj("testObj"))
             valueIsContent("a", TestTransformation.NAME)
         }
         JBind.bindObjects(document.body!!, TestProvider)

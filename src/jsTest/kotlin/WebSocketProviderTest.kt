@@ -2,8 +2,8 @@ package ca.tradejmark.jbind
 
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
-import ca.tradejmark.jbind.location.BindPath
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.Path
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
 import ca.tradejmark.jbind.websocket.WSProviderError
@@ -32,9 +32,9 @@ class WebSocketProviderTest {
 
     @Test
     fun testWebSocketProvider() = runTest {
-        val location = BindPath("test").obj("obj").value("val")
+        val location = Path("test").obj("obj").value("val")
         val mockWS = object {
-            private val followed = mutableSetOf<BindValueLocation>()
+            private val followed = mutableSetOf<ValueLocation>()
             @JsName("send")
             fun send(string: String) {
                 when (val msg = deserializeClientMessage(string)) {

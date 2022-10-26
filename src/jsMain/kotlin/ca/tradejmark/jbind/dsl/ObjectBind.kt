@@ -1,7 +1,6 @@
 package ca.tradejmark.jbind.dsl
 
-import ca.tradejmark.jbind.location.BindObjectLocation
-import ca.tradejmark.jbind.transformation.Transformation
+import ca.tradejmark.jbind.location.ObjectLocation
 import kotlinx.html.HTMLTag
 import kotlinx.serialization.ExperimentalSerializationApi
 
@@ -14,7 +13,7 @@ object ObjectBind {
     val contentValueAttrName = "data-jbind-value-is-content"
     val contentValueDatasetName = "jbindValueIsContent"
 
-    fun HTMLTag.bindObject(location: BindObjectLocation) {
+    fun HTMLTag.bindObject(location: ObjectLocation) {
         attributes[attrName] = location.toString()
     }
 

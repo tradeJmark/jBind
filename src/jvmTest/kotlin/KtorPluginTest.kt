@@ -1,7 +1,7 @@
 import ca.tradejmark.jbind.Provider
 import ca.tradejmark.jbind.UnavailableError
-import ca.tradejmark.jbind.location.BindPath
-import ca.tradejmark.jbind.location.BindValueLocation
+import ca.tradejmark.jbind.location.Path
+import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.server.JBind
 import ca.tradejmark.jbind.server.JBind.Feature.jBind
 import ca.tradejmark.jbind.websocket.Serialization.deserializeServerMessage
@@ -26,8 +26,8 @@ class KtorPluginTest {
         install(JBind)
         routing {
             jBind(object: Provider {
-                override fun getValue(location: BindValueLocation): Flow<String> {
-                    if (location == BindPath("test").obj("obj").value("val")) {
+                override fun getValue(location: ValueLocation): Flow<String> {
+                    if (location == Path("test").obj("obj").value("val")) {
                         return  testFlow
                     }
                     else throw UnavailableError(location)
@@ -40,7 +40,7 @@ class KtorPluginTest {
     fun testKtorPlugin() {
         withTestApplication(testApp) {
             handleWebSocketConversation("/") { incoming, outgoing ->
-                val msg = serializeMessage(WSProviderRequest(BindPath("test").obj("obj").value("val")))
+                val msg = serializeMessage(WSProviderRequest(Path("test").obj("obj").value("val")))
                 outgoing.send(Frame.Text(msg))
 
                 val recvd = (deserializeServerMessage((incoming.receive() as Frame.Text).readText()) as WSProviderResponse).value
