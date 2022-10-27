@@ -1,13 +1,14 @@
 import ca.tradejmark.jbind.Provider
 import ca.tradejmark.jbind.UnavailableError
+import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.location.Path
 import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.server.JBind
 import ca.tradejmark.jbind.server.JBind.Feature.jBind
 import ca.tradejmark.jbind.websocket.Serialization.deserializeServerMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
-import ca.tradejmark.jbind.websocket.WSProviderRequest
-import ca.tradejmark.jbind.websocket.WSProviderResponse
+import ca.tradejmark.jbind.websocket.ValueRequest
+import ca.tradejmark.jbind.websocket.ValueResponse
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
@@ -32,6 +33,8 @@ class KtorPluginTest {
                     }
                     else throw UnavailableError(location)
                 }
+
+                override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
             })
         }
     }
@@ -40,14 +43,14 @@ class KtorPluginTest {
     fun testKtorPlugin() {
         withTestApplication(testApp) {
             handleWebSocketConversation("/") { incoming, outgoing ->
-                val msg = serializeMessage(WSProviderRequest(Path("test").obj("obj").value("val")))
+                val msg = serializeMessage(ValueRequest(Path("test").obj("obj").value("val")))
                 outgoing.send(Frame.Text(msg))
 
-                val recvd = (deserializeServerMessage((incoming.receive() as Frame.Text).readText()) as WSProviderResponse).value
+                val recvd = (deserializeServerMessage((incoming.receive() as Frame.Text).readText()) as ValueResponse).value
                 assertEquals(INITIAL, recvd)
                 val second = "second"
                 testFlow.emit(second)
-                val rec2 = (deserializeServerMessage((incoming.receive() as Frame.Text).readText()) as WSProviderResponse).value
+                val rec2 = (deserializeServerMessage((incoming.receive() as Frame.Text).readText()) as ValueResponse).value
                 assertEquals(second, rec2)
             }
         }

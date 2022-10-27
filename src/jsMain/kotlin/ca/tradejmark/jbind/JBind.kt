@@ -1,10 +1,8 @@
 package ca.tradejmark.jbind
 
-import ca.tradejmark.jbind.dsl.AttributesBind
-import ca.tradejmark.jbind.dsl.IsHTML
-import ca.tradejmark.jbind.dsl.ContentBind
-import ca.tradejmark.jbind.dsl.ScopeBind
+import ca.tradejmark.jbind.dsl.*
 import ca.tradejmark.jbind.location.Location
+import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.location.Path
 import ca.tradejmark.jbind.location.ValueLocation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation
@@ -16,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.ParentNode
 import org.w3c.dom.get
+import org.w3c.dom.set
 
 object JBind {
     object DefaultTransformations {
@@ -25,19 +24,57 @@ object JBind {
         MARKDOWN_TRANSFORMATION to DefaultTransformations.markdown
     )
 
-    fun bind(root: ParentNode, provider: Provider) = traverse(root, { elem, scope ->
+    fun bind(root: ParentNode, provider: Provider) = traverse(root, provider, { elem, scope ->
         if (elem.hasAttribute(ContentBind.attrName)) bindContent(elem, provider, scope)
         if (elem.hasAttribute(AttributesBind.attrName)) bindAttributes(elem, provider, scope)
     })
 
-    internal fun traverse(root: ParentNode, operation: (HTMLElement, Location) -> Unit, scope: Location = Path()) {
+    internal fun traverse(root: ParentNode, provider: Provider, operation: (HTMLElement, Location) -> Unit, scope: Location = Path()) {
         var newScope = scope
         if (root is HTMLElement) {
             root.dataset[ScopeBind.datasetName]?.let { newScope = Location.fromString(it, scope) }
+            root.dataset[ExpandFromArrayBind.datasetName]?.let { arrLocStr ->
+                val arrLoc = Location.fromString(arrLocStr, newScope) as? ObjectLocation
+                    ?: throw InvalidLocationError(arrLocStr, "Location does not represent an array")
+                root.attributes.removeNamedItem(ExpandFromArrayBind.attrName)
+                root.dataset[ScopeBind.datasetName] = arrLocStr
+                val clone = root.cloneNode(true)
+                root.provideArrayIndex(0)
+                newScope = arrLoc
+                JBindScope.launch {
+                    provider.getArrayLength(arrLoc).collect { length ->
+                        var current = root.nextSibling
+                        while (current is HTMLElement && current.dataset[ExpandFromArrayBind.expandedDatasetName] != null) {
+                            val newCurrent = current.nextSibling
+                            current.remove()
+                            current = newCurrent
+                        }
+                        for (i in length - 1 downTo 1) {
+                            val new = clone.cloneNode(true) as HTMLElement
+                            new.dataset[ExpandFromArrayBind.expandedDatasetName] = true.toString()
+                            new.provideArrayIndex(i)
+                            root.after(new)
+                            traverse(new, provider, operation, newScope)
+                        }
+                    }
+                }
+            }
             operation(root, newScope)
         }
         for (i in 0 until root.childElementCount) {
-            traverse(root.children[i]!!, operation, newScope)
+            traverse(root.children[i]!!, provider, operation, newScope)
+        }
+    }
+
+    private fun HTMLElement.provideArrayIndex(index: Int) {
+        dataset[ContentBind.datasetName]?.let {
+            dataset[ContentBind.datasetName] = it.replace("[]", "[$index]")
+        }
+        dataset[AttributesBind.datasetName]?.let {
+            dataset[AttributesBind.datasetName] = it.replace("[]", "[$index]")
+        }
+        dataset[ObjectBind.datasetName]?.let {
+            dataset[ObjectBind.datasetName] = it.replace("[]", "[$index]")
         }
     }
 

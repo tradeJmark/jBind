@@ -4,12 +4,9 @@ import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
 import ca.tradejmark.jbind.location.Path
 import ca.tradejmark.jbind.location.ValueLocation
+import ca.tradejmark.jbind.websocket.*
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
-import ca.tradejmark.jbind.websocket.WSProviderError
-import ca.tradejmark.jbind.websocket.WSProviderRequest
-import ca.tradejmark.jbind.websocket.WSProviderResponse
-import ca.tradejmark.jbind.websocket.WebSocketProvider
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -38,8 +35,9 @@ class WebSocketProviderTest {
             @JsName("send")
             fun send(string: String) {
                 when (val msg = deserializeClientMessage(string)) {
-                    is WSProviderRequest -> followed.add(msg.location)
+                    is ValueRequest -> followed.add(msg.location)
                     is WSProviderError -> fail("Client sent error.")
+                    is ArrayLengthRequest -> throw IllegalStateException()
                 }
             }
 
@@ -47,7 +45,7 @@ class WebSocketProviderTest {
                 followed.forEach {
                     val event = object {
                         @JsName("data")
-                        val data = serializeMessage(WSProviderResponse(it, value))
+                        val data = serializeMessage(ValueResponse(it, value))
                     }.unsafeCast<MessageEvent>()
                     onmessage?.invoke(event) ?: fail("No onmessage callback.")
                 }

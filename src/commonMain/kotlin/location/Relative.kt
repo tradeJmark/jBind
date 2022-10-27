@@ -11,7 +11,11 @@ sealed class Relative {
 object RelativePath: PathLikeLocation, Relative()
 
 @Serializable
-object RelativeObjectLocation: ObjectLikeLocation, Relative()
+object RelativeObjectLocation: ObjectLikeLocation, Relative() {
+    operator fun get(index: Int): ArrayItemLocation = arrayItem(index)
+    fun arrayItem(index: Int): ArrayItemLocation = ArrayItemLocation(this, index)
+    fun allArrayItems(): ArrayItemLocation = ArrayItemLocation(this)
+}
 
 @Serializable
 object RelativeArrayItemLocation: ObjectLikeLocation, Relative()

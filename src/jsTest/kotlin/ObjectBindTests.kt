@@ -43,6 +43,8 @@ class ObjectBindTests {
             }
             else throw UnavailableError(location)
         }
+
+        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
     }
 
     object TestTransformation: Transformation {

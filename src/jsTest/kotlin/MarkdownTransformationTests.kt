@@ -5,6 +5,7 @@ import ca.tradejmark.jbind.MarkdownTransformationTests.TestProvider.MARKDOWN_LI_
 import ca.tradejmark.jbind.MarkdownTransformationTests.TestProvider.MARKDOWN_LI_2
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
+import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.location.ValueLocation
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,8 @@ class MarkdownTransformationTests {
         override fun getValue(location: ValueLocation): Flow<String> {
             return MutableStateFlow(MARKDOWN)
         }
+
+        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
     }
 
     @BeforeTest

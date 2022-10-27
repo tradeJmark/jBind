@@ -20,7 +20,7 @@ import org.w3c.dom.get
 fun <T> JBind.bindObjects(
     root: ParentNode,
     provider: ObjectProvider<T>,
-    serializer: SerializationStrategy<T>) = traverse(root, { elem, scope ->
+    serializer: SerializationStrategy<T>) = traverse(root, provider, { elem, scope ->
     val location = elem.dataset[ObjectBind.datasetName]
         ?.let { Location.fromString(it, scope) as? ObjectLocation ?: throw InvalidLocationError(it, "Does not represent an object") }
         ?: return@traverse

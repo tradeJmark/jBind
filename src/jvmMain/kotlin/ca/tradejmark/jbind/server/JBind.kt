@@ -2,13 +2,11 @@ package ca.tradejmark.jbind.server
 
 import ca.tradejmark.jbind.Provider
 import ca.tradejmark.jbind.UnavailableError
+import ca.tradejmark.jbind.location.Location
 import ca.tradejmark.jbind.location.ValueLocation
-import ca.tradejmark.jbind.websocket.ClientMessage
+import ca.tradejmark.jbind.websocket.*
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
-import ca.tradejmark.jbind.websocket.WSProviderError
-import ca.tradejmark.jbind.websocket.WSProviderRequest
-import ca.tradejmark.jbind.websocket.WSProviderResponse
 import io.ktor.application.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
@@ -16,11 +14,12 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import io.ktor.websocket.WebSockets.WebSocketOptions
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
 
 class JBind {
-    internal val handled = mutableMapOf<WebSocketServerSession, MutableList<ValueLocation>>()
+    internal val handled = mutableMapOf<WebSocketServerSession, MutableList<Location>>()
     class Configuration {
         internal var wsBlock: WebSocketOptions.() -> Unit = {}
         fun webSocket(block: WebSocketOptions.() -> Unit) { wsBlock = block }
@@ -41,13 +40,13 @@ class JBind {
                 when (frame) {
                     is Frame.Text -> {
                         when (val cliMsg = deserializeClientMessage(frame.readText())) {
-                            is WSProviderRequest -> {
+                            is ValueRequest -> {
                                 if (jBind.handled[this]?.contains(cliMsg.location) != true) {
                                     launch {
                                         try {
                                             provider.getValue(cliMsg.location).collect {
                                                 try {
-                                                    send(serializeMessage(WSProviderResponse(cliMsg.location, it)))
+                                                    send(serializeMessage(ValueResponse(cliMsg.location, it)))
                                                 } catch (e: ClosedReceiveChannelException) {
                                                     jBind.handled.remove(this@webSocket)
                                                 }
@@ -61,8 +60,27 @@ class JBind {
                                     jBind.handled[this]!!.add(cliMsg.location)
                                 }
                             }
+                            is ArrayLengthRequest -> {
+                                if (jBind.handled[this]?.contains(cliMsg.location) != true) {
+                                    launch {
+                                        try {
+                                            provider.getArrayLength(cliMsg.location).collect {
+                                                try {
+                                                    send(serializeMessage(ArrayLengthResponse(cliMsg.location, it)))
+                                                }
+                                                catch (e: ClosedReceiveChannelException) {
+                                                    jBind.handled.remove(this@webSocket)
+                                                }
+                                            }
+                                        }
+                                        catch (e: UnavailableError) {
+                                            send(serializeMessage(WSProviderError(e.message!!)))
+                                        }
+                                    }
+                                }
+                            }
                             is WSProviderError -> application.environment.log.error(cliMsg.msg)
-                            else -> throw IllegalStateException("This should be impossible, because the compiler is wrong to think this when is not exhaustive.")
+                            else -> throw IllegalStateException("Compiler is wrong, this when is exhaustive")
                         }
                     }
                     is Frame.Close -> jBind.handled.remove(this)

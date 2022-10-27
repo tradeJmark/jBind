@@ -31,6 +31,8 @@ class ScopeTests {
             Path("root").sub("sub").obj("a").value("val") -> flowOf(SUB_VAL)
             else -> throw InvalidLocationError(location.toString(), "Not provided.")
         }
+
+        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
     }
 
     @BeforeTest

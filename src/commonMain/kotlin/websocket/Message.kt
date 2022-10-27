@@ -17,12 +17,14 @@ object Serialization {
     private val json = Json {
         serializersModule = SerializersModule {
             fun PolymorphicModuleBuilder<ServerMessage>.registerServerMessages() {
-                subclass(WSProviderResponse::class)
+                subclass(ValueResponse::class)
                 subclass(WSProviderError::class)
+                subclass(ArrayLengthResponse::class)
             }
             fun PolymorphicModuleBuilder<ClientMessage>.registerClientMessages() {
-                subclass(WSProviderRequest::class)
+                subclass(ValueRequest::class)
                 subclass(WSProviderError::class)
+                subclass(ArrayLengthRequest::class)
             }
             fun PolymorphicModuleBuilder<ObjectLikeLocation>.registerObjectLikeLocations() {
                 subclass(ObjectLocation::class)
