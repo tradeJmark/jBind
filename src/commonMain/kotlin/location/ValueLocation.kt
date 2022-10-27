@@ -4,7 +4,7 @@ import ca.tradejmark.jbind.InvalidLocationError
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ValueLocation internal constructor(val objectLocation: ObjectLikeLocation?, val valueName: String): Location {
+data class ValueLocation internal constructor(val objectLocation: ObjectLikeLocation, val valueName: String): Location {
     override fun toString(): String = "$objectLocation.$valueName"
 
     companion object {
