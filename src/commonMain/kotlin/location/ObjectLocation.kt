@@ -4,7 +4,7 @@ import ca.tradejmark.jbind.InvalidLocationError
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ObjectLocation internal constructor(val path: PathLikeLocation, val objectName: String): ObjectLikeLocation {
+data class ObjectLocation internal constructor(override val path: PathLikeLocation, override val objectName: String): ObjectLikeLocation {
     operator fun get(index: Int): ArrayItemLocation = arrayItem(index)
     fun arrayItem(index: Int): ArrayItemLocation = ArrayItemLocation(this, index)
     fun allArrayItems(): ArrayItemLocation = ArrayItemLocation(this)

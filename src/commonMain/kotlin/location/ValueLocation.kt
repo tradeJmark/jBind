@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ValueLocation internal constructor(val objectLocation: ObjectLikeLocation, val valueName: String): Location {
+    val path: PathLikeLocation get() = objectLocation.path
     override fun toString(): String = "$objectLocation.$valueName"
 
     companion object {

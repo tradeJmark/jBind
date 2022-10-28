@@ -128,11 +128,9 @@ class BindTests {
             expandFromArray(Path().obj("array"))
             bindContent(RelativeObjectLocation.allArrayItems().value("doesNotMatter"))
         }
-        console.log(document.body)
         JBind.bind(document.body!!, TestProvider)
 
         delayForUpdate()
-        console.log(document.body)
         val div2 = (testDiv.nextElementSibling as? HTMLDivElement)
         val div3 = (div2?.nextElementSibling as? HTMLDivElement)
         assertEquals(ARR_ITEMS[0], testDiv.innerText)
