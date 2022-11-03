@@ -1,5 +1,6 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.dsl.AttributesBind.AttributeValueData
 import ca.tradejmark.jbind.dsl.AttributesBind.bindAttributes
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
 import ca.tradejmark.jbind.dsl.ScopeBind.setScope
@@ -44,7 +45,7 @@ class ScopeTests {
     fun testScoping() = runTest {
         val testDiv = document.body!!.append.div {
             setScope(Path("root"))
-            bindAttributes(mapOf("test" to RelativePath.obj("a").value("val")))
+            bindAttributes(mapOf("test" to AttributeValueData(RelativePath.obj("a").value("val"))))
             div {
                 setScope(RelativePath.sub("sub"))
                 bindContent(RelativePath.obj("a").value("val"))

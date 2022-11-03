@@ -6,27 +6,26 @@ import ca.tradejmark.jbind.BindTests.TestProvider.HTML_INNER_TEXT
 import ca.tradejmark.jbind.BindTests.TestProvider.INITIAL_ARRAY_LENGTH
 import ca.tradejmark.jbind.BindTests.TestProvider.arrayLengthFlow
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
+import ca.tradejmark.jbind.dsl.AttributesBind.AttributeValueData
 import ca.tradejmark.jbind.dsl.AttributesBind.bindAttributes
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
-import ca.tradejmark.jbind.dsl.ExpandFromArrayBind
 import ca.tradejmark.jbind.dsl.ExpandFromArrayBind.expandFromArray
 import ca.tradejmark.jbind.dsl.IsHTML.contentIsHtml
 import ca.tradejmark.jbind.location.*
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.html.dom.append
-import kotlinx.html.js.div
-import kotlin.test.Test
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
+import kotlinx.html.dom.append
 import kotlinx.html.id
+import kotlinx.html.js.div
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @ExperimentalCoroutinesApi
@@ -55,7 +54,7 @@ class BindTests {
             Path("html").obj("test").value("body") -> htmlFlow
             else -> {
                 if (location.objectLocation is ArrayItemLocation) {
-                    arrayFlows[(location.objectLocation as ArrayItemLocation).index!!]
+                    arrayFlows[(location.objectLocation as ArrayItemLocation).index]
                 }
                 else {
                     throw UnavailableError(location)
@@ -100,8 +99,8 @@ class BindTests {
         val testDiv = document.body!!.append.div {
             id = "test-div"
             bindAttributes(mapOf(
-                "testA" to Path("test").obj("obj").value("attr"),
-                "testB" to Path("test").sub("inner").obj("obj").value("attr")
+                "testA" to AttributeValueData(Path("test").obj("obj").value("attr")),
+                "testB" to AttributeValueData(Path("test").sub("inner").obj("obj").value("attr"))
             ))
         }
         JBind.bind(document.body!!, TestProvider)
@@ -149,7 +148,7 @@ class BindTests {
         val testDiv = document.body!!.append.div {
             bindContent(Path("test").obj("obj").value("attr"))
             bindAttributes(mapOf(
-                "data-test" to Path("test").obj("obj").value("attr")
+                "data-test" to AttributeValueData(Path("test").obj("obj").value("attr"))
             ))
         }
         JBind.bind(document.body!!, TestProvider)

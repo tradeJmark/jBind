@@ -1,5 +1,6 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.Util.substringBetween
 import ca.tradejmark.jbind.dsl.*
 import ca.tradejmark.jbind.location.Location
 import ca.tradejmark.jbind.location.ObjectLocation
@@ -9,6 +10,7 @@ import ca.tradejmark.jbind.transformation.MarkdownTransformation
 import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKDOWN_TRANSFORMATION
 import ca.tradejmark.jbind.transformation.Transformation
 import external.markdown_it.MarkdownVariant
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
@@ -94,18 +96,27 @@ object JBind {
     }
 
     private fun bindAttributes(element: HTMLElement, provider: Provider, scope: Location) {
+        data class AttrData(
+            val attrName: String,
+            val preStr: String,
+            val postString: String,
+            val values: Flow<String>
+        )
         val attrFlows = element.dataset[AttributesBind.datasetName]
             ?.split(";")
             ?.map {
                 val attrName = it.substringBefore("=")
-                val locStr = it.substringAfter("=")
+                val valStr = it.substringAfter("=")
+                val preStr = valStr.substringBefore("{")
+                val postStr = valStr.substringAfter("}")
+                val locStr = valStr.substringBetween("{", "}")
                 val loc = Location.fromString(locStr, scope) as? ValueLocation
                     ?: throw InvalidLocationError(locStr, "Does not represent a value")
-                attrName to provider.getValue(loc)
+                AttrData(attrName, preStr, postStr, provider.getValue(loc))
             } ?: return
-        attrFlows.forEach { (attr, valuesFlow) ->
+        attrFlows.forEach { (attr, preStr, postStr, valuesFlow) ->
             JBindScope.launch {
-                valuesFlow.collect { element.setAttribute(attr, it) }
+                valuesFlow.collect { element.setAttribute(attr, "$preStr$it$postStr") }
             }
         }
     }
