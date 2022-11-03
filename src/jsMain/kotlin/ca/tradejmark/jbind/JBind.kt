@@ -37,10 +37,8 @@ object JBind {
                 val arrLoc = Location.fromString(arrLocStr, newScope) as? ObjectLocation
                     ?: throw InvalidLocationError(arrLocStr, "Location does not represent an array")
                 root.attributes.removeNamedItem(ExpandFromArrayBind.attrName)
-                root.dataset[ScopeBind.datasetName] = arrLocStr
                 val clone = root.cloneNode(true)
-                root.provideArrayIndex(0)
-                newScope = arrLoc
+                root.dataset[ScopeBind.datasetName] = arrLoc[0].toString()
                 JBindScope.launch {
                     provider.getArrayLength(arrLoc).collect { length ->
                         var current = root.nextSibling
@@ -50,31 +48,20 @@ object JBind {
                             current = newCurrent
                         }
                         for (i in length - 1 downTo 1) {
+                            val indScope = arrLoc[i]
                             val new = clone.cloneNode(true) as HTMLElement
                             new.dataset[ExpandFromArrayBind.expandedDatasetName] = true.toString()
-                            new.provideArrayIndex(i)
                             root.after(new)
-                            traverse(new, provider, operation, newScope)
+                            traverse(new, provider, operation, indScope)
                         }
                     }
                 }
+                newScope = arrLoc[0]
             }
             operation(root, newScope)
         }
         for (i in 0 until root.childElementCount) {
             traverse(root.children[i]!!, provider, operation, newScope)
-        }
-    }
-
-    private fun HTMLElement.provideArrayIndex(index: Int) {
-        dataset[ContentBind.datasetName]?.let {
-            dataset[ContentBind.datasetName] = it.replace("[]", "[$index]")
-        }
-        dataset[AttributesBind.datasetName]?.let {
-            dataset[AttributesBind.datasetName] = it.replace("[]", "[$index]")
-        }
-        dataset[ObjectBind.datasetName]?.let {
-            dataset[ObjectBind.datasetName] = it.replace("[]", "[$index]")
         }
     }
 

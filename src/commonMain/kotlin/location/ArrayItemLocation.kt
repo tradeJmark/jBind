@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ArrayItemLocation internal constructor(
     val obj: ObjectLikeLocation,
-    val index: Int? = null
+    val index: Int
 ): ObjectLikeLocation {
     override val path: PathLikeLocation get() = obj.path
     override val objectName: String? get() = obj.objectName

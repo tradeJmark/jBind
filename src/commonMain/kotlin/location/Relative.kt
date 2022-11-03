@@ -18,7 +18,6 @@ object RelativeObjectLocation: ObjectLikeLocation, Relative() {
     override val path: PathLikeLocation get() = RelativePath
     operator fun get(index: Int): ArrayItemLocation = arrayItem(index)
     fun arrayItem(index: Int): ArrayItemLocation = ArrayItemLocation(this, index)
-    fun allArrayItems(): ArrayItemLocation = ArrayItemLocation(this)
 }
 
 @Serializable

@@ -51,13 +51,11 @@ class LocationTests {
     @Test
     fun testArrayItemToString() {
         assertEquals(anArrayItemString, anArrayItem.toString())
-        assertEquals(":arr[]", Path().obj("arr").allArrayItems().toString())
     }
 
     @Test
     fun testArrayItemFromString() {
         assertEquals(anArrayItem, Location.fromString(anArrayItemString))
-        assertEquals(Path().obj("arr").allArrayItems(), Location.fromString(":arr[]"))
     }
 
     @Test

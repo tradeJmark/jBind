@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 data class ObjectLocation internal constructor(override val path: PathLikeLocation, override val objectName: String): ObjectLikeLocation {
     operator fun get(index: Int): ArrayItemLocation = arrayItem(index)
     fun arrayItem(index: Int): ArrayItemLocation = ArrayItemLocation(this, index)
-    fun allArrayItems(): ArrayItemLocation = ArrayItemLocation(this)
     override fun toString(): String = "$path:$objectName"
 
     companion object {

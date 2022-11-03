@@ -126,7 +126,7 @@ class BindTests {
     fun testArrayExpansionBinding() = runTest {
         val testDiv = document.body!!.append.div {
             expandFromArray(Path().obj("array"))
-            bindContent(RelativeObjectLocation.allArrayItems().value("doesNotMatter"))
+            bindContent(RelativeObjectLocation.value("doesNotMatter"))
         }
         JBind.bind(document.body!!, TestProvider)
 
