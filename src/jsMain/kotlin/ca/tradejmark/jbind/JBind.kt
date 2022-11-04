@@ -59,8 +59,7 @@ object JBind {
                     }
                 }
                 newScope = arrLoc[0]
-            }
-            operation(root, newScope)
+            } ?: operation(root, newScope)
         }
         for (i in 0 until root.childElementCount) {
             traverse(root.children[i]!!, provider, operation, newScope)
