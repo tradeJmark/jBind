@@ -40,16 +40,16 @@ object JBind {
                     ?: throw InvalidLocationError(arrLocStr, "Location does not represent an array")
                 root.attributes.removeNamedItem(ExpandFromArrayBind.attrName)
                 val clone = root.cloneNode(true)
-                root.dataset[ScopeBind.datasetName] = arrLoc[0].toString()
+                root.hidden = true
                 JBindScope.launch {
                     provider.getArrayLength(arrLoc).collect { length ->
                         var current = root.nextSibling
-                        while (current is HTMLElement && current.dataset[ExpandFromArrayBind.expandedDatasetName] != null) {
+                        while (current is HTMLElement && current.dataset[ExpandFromArrayBind.expandedDatasetName] == true.toString()) {
                             val newCurrent = current.nextSibling
                             current.remove()
                             current = newCurrent
                         }
-                        for (i in length - 1 downTo 1) {
+                        for (i in length - 1 downTo 0) {
                             val indScope = arrLoc[i]
                             val new = clone.cloneNode(true) as HTMLElement
                             new.dataset[ExpandFromArrayBind.expandedDatasetName] = true.toString()

@@ -24,9 +24,7 @@ import kotlinx.html.js.div
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.*
 
 @ExperimentalCoroutinesApi
 class BindTests {
@@ -130,16 +128,18 @@ class BindTests {
         JBind.bind(document.body!!, TestProvider)
 
         delayForUpdate()
-        val div2 = (testDiv.nextElementSibling as? HTMLDivElement)
+        assertTrue(testDiv.hidden)
+        val div1 = (testDiv.nextElementSibling as? HTMLDivElement)
+        val div2 = (div1?.nextElementSibling as? HTMLDivElement)
         val div3 = (div2?.nextElementSibling as? HTMLDivElement)
-        assertEquals(ARR_ITEMS[0], testDiv.innerText)
+        assertEquals(ARR_ITEMS[0], div1?.innerText)
         assertEquals(ARR_ITEMS[1], div2?.innerText)
         assertEquals(ARR_ITEMS[2], div3?.innerText)
-        assertEquals(INITIAL_ARRAY_LENGTH, document.body!!.children.length)
+        assertEquals(INITIAL_ARRAY_LENGTH + 1, document.body!!.children.length)
         arrayLengthFlow.emit(2)
         delayForUpdate()
-        assertEquals(INITIAL_ARRAY_LENGTH - 1, document.body!!.children.length)
-        assertEquals(ARR_ITEMS[0], testDiv.innerText)
+        assertEquals(INITIAL_ARRAY_LENGTH, document.body!!.children.length)
+        assertEquals(ARR_ITEMS[0], div1?.innerText)
         assertEquals(ARR_ITEMS[1], div2?.innerText)
     }
 
