@@ -9,5 +9,5 @@ data class ArrayItemLocation internal constructor(
 ): ObjectLikeLocation {
     override val path: PathLikeLocation get() = obj.path
     override val objectName: String? get() = obj.objectName
-    override fun toString(): String = "$obj[${index ?: ""}]"
+    override fun toString(): String = "$obj[${index}]"
 }
