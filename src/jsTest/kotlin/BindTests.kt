@@ -128,7 +128,7 @@ class BindTests {
         JBind.bind(document.body!!, TestProvider)
 
         delayForUpdate()
-        assertTrue(testDiv.hidden)
+        assertEquals("none", testDiv.style.display)
         val div1 = (testDiv.nextElementSibling as? HTMLDivElement)
         val div2 = (div1?.nextElementSibling as? HTMLDivElement)
         val div3 = (div2?.nextElementSibling as? HTMLDivElement)

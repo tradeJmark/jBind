@@ -40,7 +40,7 @@ object JBind {
                     ?: throw InvalidLocationError(arrLocStr, "Location does not represent an array")
                 root.attributes.removeNamedItem(ExpandFromArrayBind.attrName)
                 val clone = root.cloneNode(true)
-                root.hidden = true
+                root.style.display = "none"
                 JBindScope.launch {
                     provider.getArrayLength(arrLoc).collect { length ->
                         var current = root.nextSibling
