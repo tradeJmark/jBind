@@ -129,18 +129,31 @@ class BindTests {
 
         delayForUpdate()
         assertEquals("none", testDiv.style.display)
-        val div1 = (testDiv.nextElementSibling as? HTMLDivElement)
-        val div2 = (div1?.nextElementSibling as? HTMLDivElement)
-        val div3 = (div2?.nextElementSibling as? HTMLDivElement)
+        var div1 = testDiv.nextElementSibling as? HTMLDivElement
+        var div2 = div1?.nextElementSibling as? HTMLDivElement
+        var div3 = div2?.nextElementSibling as? HTMLDivElement
         assertEquals(ARR_ITEMS[0], div1?.innerText)
         assertEquals(ARR_ITEMS[1], div2?.innerText)
         assertEquals(ARR_ITEMS[2], div3?.innerText)
         assertEquals(INITIAL_ARRAY_LENGTH + 1, document.body!!.children.length)
         arrayLengthFlow.emit(2)
         delayForUpdate()
+        div1 = testDiv.nextElementSibling as? HTMLDivElement
+        div2 = div1?.nextElementSibling as? HTMLDivElement
+        div3 = div2?.nextElementSibling as? HTMLDivElement
         assertEquals(INITIAL_ARRAY_LENGTH, document.body!!.children.length)
         assertEquals(ARR_ITEMS[0], div1?.innerText)
         assertEquals(ARR_ITEMS[1], div2?.innerText)
+        assertNull(div3)
+        arrayLengthFlow.emit(3)
+        delayForUpdate()
+        div1 = testDiv.nextElementSibling as? HTMLDivElement
+        div2 = div1?.nextElementSibling as? HTMLDivElement
+        div3 = div2?.nextElementSibling as? HTMLDivElement
+        assertEquals(INITIAL_ARRAY_LENGTH + 1, document.body!!.children.length)
+        assertEquals(ARR_ITEMS[0], div1?.innerText)
+        assertEquals(ARR_ITEMS[1], div2?.innerText)
+        assertEquals(ARR_ITEMS[2], div3?.innerText)
     }
 
     @Test
