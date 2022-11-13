@@ -4,7 +4,10 @@ import ca.tradejmark.jbind.BindTests.TestProvider.ARR_ITEMS
 import ca.tradejmark.jbind.BindTests.TestProvider.HTML_INNER_ID
 import ca.tradejmark.jbind.BindTests.TestProvider.HTML_INNER_TEXT
 import ca.tradejmark.jbind.BindTests.TestProvider.INITIAL_ARRAY_LENGTH
+import ca.tradejmark.jbind.BindTests.TestProvider.MODDED_ARR_VAL
+import ca.tradejmark.jbind.BindTests.TestProvider.arrayFlows
 import ca.tradejmark.jbind.BindTests.TestProvider.arrayLengthFlow
+import ca.tradejmark.jbind.JBind.bind
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.AttributesBind.AttributeValueData
 import ca.tradejmark.jbind.dsl.AttributesBind.bindAttributes
@@ -14,6 +17,8 @@ import ca.tradejmark.jbind.dsl.IsHTML.contentIsHtml
 import ca.tradejmark.jbind.location.*
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -40,6 +45,7 @@ class BindTests {
             "arr2",
             "arr3"
         )
+        const val MODDED_ARR_VAL = "modded"
 
         val testFlow = MutableStateFlow(INITIAL)
         val testFlow2 = MutableStateFlow(INITIAL2)
@@ -82,7 +88,7 @@ class BindTests {
         val testDiv = document.body!!.append.div {
             bindContent(Path("test").obj("obj").value("attr"))
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals(TestProvider.INITIAL, testDiv.innerText)
@@ -90,6 +96,7 @@ class BindTests {
         TestProvider.testFlow.emit(new)
         delayForUpdate()
         assertEquals(new, testDiv.innerText)
+        coroutineContext.cancelChildren()
     }
 
     @Test
@@ -101,7 +108,7 @@ class BindTests {
                 "testB" to AttributeValueData(Path("test").sub("inner").obj("obj").value("attr"))
             ))
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals(TestProvider.INITIAL, testDiv.getAttribute("testA"))
@@ -117,6 +124,7 @@ class BindTests {
         delayForUpdate()
         assertEquals(third, testDiv.getAttribute("testA"))
         assertEquals(third, testDiv.getAttribute("testB"))
+        coroutineContext.cancelChildren()
     }
 
     @Test
@@ -125,7 +133,7 @@ class BindTests {
             expandFromArray(Path().obj("array"))
             bindContent(RelativeObjectLocation.value("doesNotMatter"))
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals("none", testDiv.style.display)
@@ -154,26 +162,34 @@ class BindTests {
         assertEquals(ARR_ITEMS[0], div1?.innerText)
         assertEquals(ARR_ITEMS[1], div2?.innerText)
         assertEquals(ARR_ITEMS[2], div3?.innerText)
+        arrayFlows[0].emit(MODDED_ARR_VAL)
+        delayForUpdate()
+        assertEquals(MODDED_ARR_VAL, div1?.innerText)
+        coroutineContext.cancelChildren()
     }
 
     @Test
-    fun testAllBindings() = runTest {
+    fun testMultipleBindings() = runTest {
         val testDiv = document.body!!.append.div {
             bindContent(Path("test").obj("obj").value("attr"))
             bindAttributes(mapOf(
                 "data-test" to AttributeValueData(Path("test").obj("obj").value("attr"))
             ))
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
         delayForUpdate()
+        console.log(testDiv)
         assertEquals(TestProvider.INITIAL, testDiv.innerText)
+        console.log("here2")
         assertEquals(TestProvider.INITIAL, testDiv.dataset["test"])
+        console.log("here3")
         val second = "second"
         TestProvider.testFlow.emit(second)
         delayForUpdate()
         assertEquals(second, testDiv.innerText)
         assertEquals(second, testDiv.dataset["test"])
+        coroutineContext.cancelChildren()
     }
 
     @Test
@@ -182,11 +198,12 @@ class BindTests {
             bindContent(Path("html").obj("test").value("body"))
             contentIsHtml = true
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals(testDiv.innerHTML, TestProvider.HTML_CONTENT)
         assertEquals(HTML_INNER_ID, (testDiv.firstChild as? HTMLElement)?.id)
         assertEquals(HTML_INNER_TEXT, (testDiv.firstChild as? HTMLElement)?.innerText)
+        coroutineContext.cancelChildren()
     }
 }

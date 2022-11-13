@@ -1,5 +1,7 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.JBind.bind
+import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.AttributesBind.AttributeValueData
 import ca.tradejmark.jbind.dsl.AttributesBind.bindAttributes
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
@@ -51,9 +53,9 @@ class ScopeTests {
                 bindContent(RelativePath.obj("a").value("val"))
             }
         }
-        JBind.bind(document.body!!, TestProvider)
+        bind(document.body!!, TestProvider)
 
-        TestUtils.delayForUpdate()
+        delayForUpdate()
         assertEquals(TestProvider.ROOT_VAL, testDiv.getAttribute("test"))
         assertEquals(TestProvider.SUB_VAL, (testDiv.firstElementChild as HTMLDivElement).innerText)
     }

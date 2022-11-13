@@ -63,7 +63,7 @@ class ObjectBindTests {
             bindObject(Path("path").obj("testObj"))
             valueIsContent("a")
         }
-        JBind.bindObjects(document.body!!, TestProvider)
+        bindObjects(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals(TestProvider.testObj.a, testDiv.innerText)
@@ -79,7 +79,7 @@ class ObjectBindTests {
             bindObject(Path("path").obj("testObj"))
             valueIsContent("a", TestTransformation)
         }
-        JBind.bindObjects(document.body!!, TestProvider)
+        bindObjects(document.body!!, TestProvider)
 
         delayForUpdate()
         assertEquals("${TestProvider.testObj.a} transformed", testDiv.innerText)

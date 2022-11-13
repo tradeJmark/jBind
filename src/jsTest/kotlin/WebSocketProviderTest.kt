@@ -1,5 +1,6 @@
 package ca.tradejmark.jbind
 
+import ca.tradejmark.jbind.JBind.bind
 import ca.tradejmark.jbind.TestUtils.delayForUpdate
 import ca.tradejmark.jbind.dsl.ContentBind.bindContent
 import ca.tradejmark.jbind.location.Path
@@ -9,6 +10,7 @@ import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
 import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import org.w3c.dom.MessageEvent
@@ -58,7 +60,7 @@ class WebSocketProviderTest {
         val testDiv = document.body!!.append.div {
             bindContent(location)
         }
-        JBind.bind(document.body!!, provider)
+        bind(document.body!!, provider)
         val first = "first"
         mockWS.sendValue(first)
         delayForUpdate()
@@ -67,5 +69,6 @@ class WebSocketProviderTest {
         mockWS.sendValue(second)
         delayForUpdate()
         assertEquals(second, testDiv.innerText)
+        coroutineContext.cancelChildren()
     }
 }

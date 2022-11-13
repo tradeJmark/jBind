@@ -1,12 +1,13 @@
 package ca.tradejmark.jbind.serialization
 
 import ca.tradejmark.jbind.InvalidLocationError
-import ca.tradejmark.jbind.JBind
-import ca.tradejmark.jbind.JBindScope
+import ca.tradejmark.jbind.JBind.transformations
+import ca.tradejmark.jbind.JBind.traverse
 import ca.tradejmark.jbind.dsl.ObjectBind
 import ca.tradejmark.jbind.location.Location
 import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.transformation.Transformation
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -17,14 +18,14 @@ import org.w3c.dom.ParentNode
 import org.w3c.dom.get
 
 @OptIn(ExperimentalSerializationApi::class)
-fun <T> JBind.bindObjects(
+fun <T> CoroutineScope.bindObjects(
     root: ParentNode,
     provider: ObjectProvider<T>,
     serializer: SerializationStrategy<T>) = traverse(root, provider, { elem, scope ->
     val location = elem.dataset[ObjectBind.datasetName]
         ?.let { Location.fromString(it, scope) as? ObjectLocation ?: throw InvalidLocationError(it, "Does not represent an object") }
         ?: return@traverse
-    JBindScope.launch {
+    launch {
         provider.getObject(location).collect { obj ->
             val contentValue = elem.dataset[ObjectBind.contentValueDatasetName]
             val transformation = elem.dataset[ObjectBind.contentTransformationDatasetName]?.let { transformations[it] }
@@ -33,7 +34,7 @@ fun <T> JBind.bindObjects(
     }
 })
 
-inline fun <reified T> JBind.bindObjects(root: ParentNode, provider: ObjectProvider<T>) {
+inline fun <reified T> CoroutineScope.bindObjects(root: ParentNode, provider: ObjectProvider<T>) {
     bindObjects(root, provider, serializer())
 }
 
