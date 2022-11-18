@@ -11,16 +11,14 @@ import ca.tradejmark.jbind.transformation.MarkdownTransformation.Companion.MARKD
 import ca.tradejmark.jbind.transformation.Transformation
 import external.markdown_it.MarkdownVariant
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.ParentNode
 import org.w3c.dom.get
 import org.w3c.dom.set
-import kotlin.coroutines.coroutineContext
 
 object JBind {
     object DefaultTransformations {
@@ -47,7 +45,7 @@ object JBind {
                 root.style.display = "none"
                 launch {
                     provider.getArrayLength(arrLoc).collect { length ->
-                        //if (root.parentNode == null) cancel()
+                        coroutineContext.cancelChildren()
                         var current = root.nextSibling
                         while (current is HTMLElement && current.dataset[ExpandFromArrayBind.expandedDatasetName] == true.toString()) {
                             val newCurrent = current.nextSibling
