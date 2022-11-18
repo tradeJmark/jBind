@@ -17,19 +17,22 @@ import ca.tradejmark.jbind.dsl.IsHTML.contentIsHtml
 import ca.tradejmark.jbind.location.*
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
+import kotlinx.html.div
 import kotlinx.html.dom.append
 import kotlinx.html.id
 import kotlinx.html.js.div
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
-import kotlin.test.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @ExperimentalCoroutinesApi
 class BindTests {
@@ -76,6 +79,7 @@ class BindTests {
     fun clearTestFlows() {
         TestProvider.testFlow.tryEmit(TestProvider.INITIAL)
         TestProvider.testFlow2.tryEmit(TestProvider.INITIAL2)
+        arrayFlows[0].tryEmit(ARR_ITEMS[0])
     }
 
     @BeforeTest
@@ -170,20 +174,27 @@ class BindTests {
 
     @Test
     fun testMultipleBindings() = runTest {
-        val testDiv = document.body!!.append.div {
-            bindContent(Path("test").obj("obj").value("attr"))
-            bindAttributes(mapOf(
-                "data-test" to AttributeValueData(Path("test").obj("obj").value("attr"))
-            ))
+        val parentDiv = document.body!!.append.div {
+            div {
+                bindContent(Path("test").obj("obj").value("attr"))
+                bindAttributes(mapOf(
+                    "data-test" to AttributeValueData(Path("test").obj("obj").value("attr"))
+                ))
+            }
+            div {
+                expandFromArray(Path().obj("array"))
+                bindContent(RelativeObjectLocation.value("anyValue"))
+            }
         }
         bind(document.body!!, TestProvider)
 
         delayForUpdate()
-        console.log(testDiv)
+        val testDiv = parentDiv.firstElementChild as HTMLDivElement
         assertEquals(TestProvider.INITIAL, testDiv.innerText)
-        console.log("here2")
         assertEquals(TestProvider.INITIAL, testDiv.dataset["test"])
-        console.log("here3")
+        assertEquals(INITIAL_ARRAY_LENGTH + 2, parentDiv.childElementCount)
+        val firstArrayDiv = testDiv.nextElementSibling?.nextElementSibling as HTMLDivElement
+        assertEquals(ARR_ITEMS[0], firstArrayDiv.innerText)
         val second = "second"
         TestProvider.testFlow.emit(second)
         delayForUpdate()
