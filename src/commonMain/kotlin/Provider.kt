@@ -2,10 +2,9 @@ package ca.tradejmark.jbind
 
 import ca.tradejmark.jbind.location.ObjectLocation
 import ca.tradejmark.jbind.location.ValueLocation
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface Provider {
-    fun getValue(location: ValueLocation): Flow<String>
-
-    fun getArrayLength(location: ObjectLocation): Flow<Int>
+    fun getValue(location: ValueLocation): StateFlow<String>
+    fun getArrayLength(location: ObjectLocation): StateFlow<Int>
 }

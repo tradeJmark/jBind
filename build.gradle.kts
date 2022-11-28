@@ -79,14 +79,14 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-core:1.6.5")
-                implementation("io.ktor:ktor-websockets:1.6.5")
+                implementation("io.ktor:ktor-server-core:2.1.3")
+                implementation("io.ktor:ktor-server-websockets:2.1.3")
             }
         }
 
         val jvmTest by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-test-host:1.6.5")
+                implementation("io.ktor:ktor-server-test-host:2.1.3")
             }
         }
     }

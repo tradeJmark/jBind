@@ -1,65 +1,48 @@
 package ca.tradejmark.jbind.server
 
 import ca.tradejmark.jbind.Provider
-import ca.tradejmark.jbind.UnavailableError
 import ca.tradejmark.jbind.location.Location
-import ca.tradejmark.jbind.location.ValueLocation
-import ca.tradejmark.jbind.websocket.*
 import ca.tradejmark.jbind.websocket.Serialization.deserializeClientMessage
-import ca.tradejmark.jbind.websocket.Serialization.serializeMessage
-import io.ktor.application.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.routing.*
-import io.ktor.util.*
+import ca.tradejmark.jbind.websocket.ValueRequest
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import io.ktor.websocket.WebSockets.WebSocketOptions
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 
-class JBind {
-    internal val handled = mutableMapOf<WebSocketServerSession, MutableList<Location>>()
-    class Configuration {
-        internal var wsBlock: WebSocketOptions.() -> Unit = {}
-        fun webSocket(block: WebSocketOptions.() -> Unit) { wsBlock = block }
+
+fun Route.jBind(provider: Provider) {
+    application.pluginOrNull(WebSockets)
+        ?: throw IllegalStateException("Can't run jBind without WebSockets plugin installed")
+    val registry = mutableMapOf<Location, MutableSet<WebSocketServerSession>>()
+
+    fun WebSocketServerSession.handleValueRequest(location: Location) {
+        registry.getOrPut(location) { mutableSetOf() }.add(this)
+        locations.add(cliMsg.location)
+        if (jBind.valueJobs.contains(cliMsg.location)) {
+            val currentValue = provider.getValue(cliMsg.location).value
+            val response = ValueResponse(cliMsg.location, currentValue)
+            send(serializeMessage(response))
+        } else {
+            val job = launch {
+                provider.getValue(cliMsg.location).collect { newVal ->
+                    val message = serializeMessage(ValueResponse(cliMsg.location, newVal))
+                    jBind.registry[cliMsg.location]?.forEach { it.send(message) }
+                }
+            }
+            jBind.valueJobs[cliMsg.location] = job
+        }
     }
 
-    companion object Feature: ApplicationFeature<Application, Configuration, JBind> {
-        override val key = AttributeKey<JBind>("JBind")
-
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): JBind {
-            val c = Configuration().apply(configure)
-            pipeline.featureOrNull(WebSockets) ?: pipeline.install(WebSockets, c.wsBlock)
-            return JBind()
-        }
-
-        fun Route.jBind(provider: Provider) = webSocket {
-            val jBind = application.feature(JBind)
-            for (frame in incoming) {
+    webSocket {
+        val locations = mutableSetOf<Location>()
+        for (frame in incoming) {
+            try {
                 when (frame) {
                     is Frame.Text -> {
                         when (val cliMsg = deserializeClientMessage(frame.readText())) {
-                            is ValueRequest -> {
-                                if (jBind.handled[this]?.contains(cliMsg.location) != true) {
-                                    launch {
-                                        try {
-                                            provider.getValue(cliMsg.location).collect {
-                                                try {
-                                                    send(serializeMessage(ValueResponse(cliMsg.location, it)))
-                                                } catch (e: ClosedReceiveChannelException) {
-                                                    jBind.handled.remove(this@webSocket)
-                                                }
-                                            }
-                                        }
-                                        catch (e: UnavailableError) {
-                                            send(serializeMessage(WSProviderError(e.message!!)))
-                                        }
-                                    }
-                                    if (!jBind.handled.containsKey(this)) jBind.handled[this] = mutableListOf()
-                                    jBind.handled[this]!!.add(cliMsg.location)
-                                }
-                            }
+                            is ValueRequest -> handleValueRequest(cliMsg.location)
+
                             is ArrayLengthRequest -> {
                                 if (jBind.handled[this]?.contains(cliMsg.location) != true) {
                                     launch {
@@ -67,25 +50,26 @@ class JBind {
                                             provider.getArrayLength(cliMsg.location).collect {
                                                 try {
                                                     send(serializeMessage(ArrayLengthResponse(cliMsg.location, it)))
-                                                }
-                                                catch (e: ClosedReceiveChannelException) {
+                                                } catch (e: ClosedReceiveChannelException) {
                                                     jBind.handled.remove(this@webSocket)
                                                 }
                                             }
-                                        }
-                                        catch (e: UnavailableError) {
+                                        } catch (e: UnavailableError) {
                                             send(serializeMessage(WSProviderError(e.message!!)))
                                         }
                                     }
                                 }
                             }
+
                             is WSProviderError -> application.environment.log.error(cliMsg.msg)
                             else -> throw IllegalStateException("Compiler is wrong, this when is exhaustive")
                         }
                     }
-                    is Frame.Close -> jBind.handled.remove(this)
                     else -> send(serializeMessage(WSProviderError("Cannot handle data other than text.")))
                 }
+            }
+            catch (ex: ClosedReceiveChannelException) {
+
             }
         }
     }
