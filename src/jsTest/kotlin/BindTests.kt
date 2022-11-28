@@ -20,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import kotlinx.html.div
@@ -55,7 +56,7 @@ class BindTests {
         val htmlFlow = MutableStateFlow(HTML_CONTENT)
         val arrayLengthFlow = MutableStateFlow(INITIAL_ARRAY_LENGTH)
         val arrayFlows = ARR_ITEMS.map { MutableStateFlow(it) }
-        override fun getValue(location: ValueLocation): Flow<String> = when (location) {
+        override fun getValue(location: ValueLocation): StateFlow<String> = when (location) {
             Path("test").obj("obj").value("attr") -> testFlow
             Path("test").sub("inner").obj("obj").value("attr") -> testFlow2
             Path("html").obj("test").value("body") -> htmlFlow
@@ -69,7 +70,7 @@ class BindTests {
             }
         }
 
-        override fun getArrayLength(location: ObjectLocation): Flow<Int> = when (location) {
+        override fun getArrayLength(location: ObjectLocation): StateFlow<Int> = when (location) {
             Path().obj("array") -> arrayLengthFlow
             else -> throw UnavailableError(location)
         }

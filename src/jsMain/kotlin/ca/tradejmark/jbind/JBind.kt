@@ -13,6 +13,7 @@ import external.markdown_it.MarkdownVariant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
@@ -44,7 +45,7 @@ object JBind {
                 val clone = root.cloneNode(true)
                 root.style.display = "none"
                 launch {
-                    provider.getArrayLength(arrLoc).collect { length ->
+                    provider.getArrayLength(arrLoc).filterNotNull().collect { length ->
                         coroutineContext.cancelChildren()
                         var current = root.nextSibling
                         while (current is HTMLElement && current.dataset[ExpandFromArrayBind.expandedDatasetName] == true.toString()) {
@@ -82,7 +83,7 @@ object JBind {
             val location = Location.fromString(loc, scope) as? ValueLocation
                 ?: throw InvalidLocationError(loc, "Does not represent a value")
             val transformation = element.dataset[ContentBind.transformDatasetName]?.let { transformations[it] }
-            provider.getValue(location).map {
+            provider.getValue(location).filterNotNull().map {
                 val htmlByAttr = element.dataset[IsHTML.datasetName].toBoolean()
                 if (transformation != null) {
                     val content = transformation.transform(it)
@@ -114,7 +115,7 @@ object JBind {
                 val locStr = valStr.substringBetween("{", "}")
                 val loc = Location.fromString(locStr, scope) as? ValueLocation
                     ?: throw InvalidLocationError(locStr, "Does not represent a value")
-                AttrData(attrName, preStr, postStr, provider.getValue(loc))
+                AttrData(attrName, preStr, postStr, provider.getValue(loc).filterNotNull())
             } ?: return
         attrFlows.forEach { (attr, preStr, postStr, valuesFlow) ->
             launch {

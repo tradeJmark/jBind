@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import kotlinx.html.dom.append
@@ -31,11 +32,11 @@ class MarkdownTransformationTests {
         const val MARKDOWN_LI_1 = "A"
         const val MARKDOWN_LI_2 = "B"
         const val MARKDOWN = "# $MARKDOWN_H1\n- $MARKDOWN_LI_1\n- $MARKDOWN_LI_2"
-        override fun getValue(location: ValueLocation): Flow<String> {
+        override fun getValue(location: ValueLocation): StateFlow<String> {
             return MutableStateFlow(MARKDOWN)
         }
 
-        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
+        override fun getArrayLength(location: ObjectLocation): StateFlow<Int> { throw UnavailableError(location) }
     }
 
     @BeforeTest

@@ -12,8 +12,9 @@ import ca.tradejmark.jbind.location.RelativePath
 import ca.tradejmark.jbind.location.ValueLocation
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import kotlinx.html.div
@@ -29,13 +30,13 @@ class ScopeTests {
     object TestProvider: Provider {
         const val ROOT_VAL = "7"
         const val SUB_VAL = "8"
-        override fun getValue(location: ValueLocation): Flow<String> = when (location) {
-            Path("root").obj("a").value("val") -> flowOf(ROOT_VAL)
-            Path("root").sub("sub").obj("a").value("val") -> flowOf(SUB_VAL)
+        override fun getValue(location: ValueLocation): StateFlow<String> = when (location) {
+            Path("root").obj("a").value("val") -> MutableStateFlow(ROOT_VAL)
+            Path("root").sub("sub").obj("a").value("val") -> MutableStateFlow(SUB_VAL)
             else -> throw InvalidLocationError(location.toString(), "Not provided.")
         }
 
-        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
+        override fun getArrayLength(location: ObjectLocation): StateFlow<Int> { throw UnavailableError(location) }
     }
 
     @BeforeTest
@@ -58,5 +59,6 @@ class ScopeTests {
         delayForUpdate()
         assertEquals(TestProvider.ROOT_VAL, testDiv.getAttribute("test"))
         assertEquals(TestProvider.SUB_VAL, (testDiv.firstElementChild as HTMLDivElement).innerText)
+        coroutineContext.cancelChildren()
     }
 }

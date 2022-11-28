@@ -13,8 +13,9 @@ import ca.tradejmark.jbind.serialization.decodeFromElement
 import ca.tradejmark.jbind.transformation.Transformation
 import kotlinx.browser.document
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.dom.clear
 import kotlinx.html.dom.append
@@ -33,18 +34,18 @@ class ObjectBindTests {
     object TestProvider: ObjectProvider<TestClass> {
         val testObj = TestClass("testing", 24)
 
-        override fun getValue(location: ValueLocation): Flow<String> {
+        override fun getValue(location: ValueLocation): StateFlow<String> {
             throw UnavailableError(location)
         }
 
-        override fun getObject(location: ObjectLocation): Flow<TestClass> {
+        override fun getObject(location: ObjectLocation): StateFlow<TestClass> {
             if (location == Path("path").obj("testObj")) {
-                return flow { emit(testObj) }
+                return MutableStateFlow(testObj)
             }
             else throw UnavailableError(location)
         }
 
-        override fun getArrayLength(location: ObjectLocation): Flow<Int> { throw UnavailableError(location) }
+        override fun getArrayLength(location: ObjectLocation): StateFlow<Int> { throw UnavailableError(location) }
     }
 
     object TestTransformation: Transformation {
@@ -70,6 +71,7 @@ class ObjectBindTests {
         assertEquals(TestProvider.testObj.b.toString(), testDiv.getAttribute(ObjectBind.getValueAttrName("b")))
         val deser = decodeFromElement<TestClass>(testDiv, contentValue = "a")
         assertEquals(TestProvider.testObj, deser)
+        coroutineContext.cancelChildren()
     }
 
     @Test
@@ -86,5 +88,6 @@ class ObjectBindTests {
         assertEquals(TestProvider.testObj.b.toString(), testDiv.getAttribute(ObjectBind.getValueAttrName("b")))
         val deser = decodeFromElement<TestClass>(testDiv, contentValue = "a")
         assertEquals(TestProvider.testObj.copy(a = TestTransformation.transform(TestProvider.testObj.a)), deser)
+        coroutineContext.cancelChildren()
     }
 }
